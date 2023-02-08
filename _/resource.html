@@ -65,8 +65,12 @@
 </div>
 
 <script>
-if (window.location.pathname.substring(0, 2) !== '/_')
-  loadResource(document.URL)
+  if (window.location.pathname.substring(0, 2) !== '/_') {
+    if (window.location.pathname === '/' && window.location.search)
+      loadResource(window.location.search.substring(1) + window.location.hash)
+    else
+      loadResource(document.URL)
+  }
 </script>
 
 </body>

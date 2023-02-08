@@ -75,12 +75,12 @@
     }
   }
 
-  const subjectSort = (titlePredicates) => (a, b) => {
+  const subjectSort = (myIri, titlePredicates) => (a, b) => {
     if (a['@id'] === b['@id'])
       return 0
-    if (a['@id'] === decodeURIComponent(window.location.href))
+    if (a['@id'] === myIri)
       return -1
-    if (b['@id'] === decodeURIComponent(window.location.href))
+    if (b['@id'] === myIri)
       return 1
     return subjectSortId(a, titlePredicates).localeCompare(subjectSortId(b, titlePredicates), undefined, { sensitivity: 'base', numeric: true })
   }
@@ -131,12 +131,13 @@
     if (iri.slice(0, origin.length) === origin)
       return '<a href="' + iri + '" title="' + iri + '">' + label + '</a>'
     else
-      return '<a href="' + iri + '" title="' + iri + '" target="_blank">' + label + '</a>'
+      return '<a href="' + iri + '" title="' + iri + '" target="_blank">' + label + '</a>' // +
+    // '<sup><a href="/?' + iri + '" title="' + iri + '">*</a></sup>'
   }
 
-  const renderTitle = (graph, titlePredicates) => {
+  const renderTitle = (myIri, graph, titlePredicates) => {
     const subject = graph.filter(function (subject) {
-      return subject['@id'] === decodeURIComponent(window.location.href)
+      return subject['@id'] === myIri
     }).shift()
 
     if (!subject)
@@ -150,11 +151,11 @@
     return '<h1>' + title + '</h1>'
   }
 
-  const renderSticky = (graph) => {
-    const resource = '<h4><a href="'+window.location.href+'">' + decodeURIComponent(window.location.href) + '</a></h4>'
+  const renderSticky = (myIri, graph) => {
+    const resource = '<h4><a href="' + myIri + '">' + myIri + '</a></h4>'
 
     const subject = graph.filter(function (subject) {
-      return subject['@id'] === decodeURIComponent(window.location.href)
+      return subject['@id'] === myIri
     }).shift()
 
     var typeElements = ''
@@ -214,10 +215,10 @@
     }
   }
 
-  const renderTable = (subject, vocab) => {
+  const renderTable = (myIri, subject, vocab) => {
     var head = '<thead class="table-subject"></thead>'
 
-    if (subject['@id'] !== decodeURIComponent(window.location.href)) {
+    if (subject['@id'] !== myIri) {
       head = '<thead><tr><th colspan="2">' + renderNode(subject) + '</th></tr></thead>'
     }
 
@@ -266,11 +267,11 @@
       '</table>'
   }
 
-  const renderTables = (graph, vocab, titlePredicates) => {
-    const subjects = graph.sort(subjectSort(titlePredicates))
+  const renderTables = (myIri, graph, vocab, titlePredicates) => {
+    const subjects = graph.sort(subjectSort(myIri, titlePredicates))
 
     return subjects.map(function (subject) {
-      return renderTable(subject, vocab)
+      return renderTable(myIri, subject, vocab)
     }).join('')
   }
 
@@ -300,7 +301,7 @@
     })
   }
 
-  const renderLd = (json) => {
+  const renderLd = (iri, json) => {
     Promise.all([
       embeddedGraph({} /*'vocab'*/),
       embeddedGraph(json /*'data'*/)
@@ -308,9 +309,9 @@
       var vocab = results[0]
       var graph = results[1]
 
-      render('title', renderTitle(graph, titlePredicates))
-      render('subtitle', renderSticky(graph))
-      render('graph', renderTables(graph, vocab, titlePredicates))
+      render('title', renderTitle(iri, graph, titlePredicates))
+      render('subtitle', renderSticky(iri, graph))
+      render('graph', renderTables(iri, graph, vocab, titlePredicates))
     }).catch(function (error) {
       console.error(error)
     })

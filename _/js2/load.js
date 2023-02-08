@@ -66,7 +66,7 @@
 	  fetchJsonLd(describeQuery)
 	    .then((json) => {
 	      document.getElementById('data').innerHTML = JSON.stringify(json)
-	      renderLd(json)
+	      renderLd(iri, json)
 	      findMap(iri, json)
 	    })
 	} else {
