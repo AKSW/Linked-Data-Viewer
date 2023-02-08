@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// based on https://github.com/zazuko/trifid-renderer-simple
+
 /* global jsonld */
 
 (() => {
