@@ -1,0 +1,67 @@
+html { font-size: 14px !important; scroll-behavior: smooth; }
+
+@media (min-width: 31.25rem) { html { font-size: 16px !important; } }
+
+body { font-family: "Red Hat Display", sans-serif; font-size: inherit; line-height: 1.4; color: #5c5962; background-color: #fff; overflow-wrap: break-word; padding: 1em; }
+
+@media (min-width: 31.25rem) { body { padding: 1em 2em; } }
+
+h1 { font-size: 32px !important; line-height: 1.25; font-weight: 300; }
+
+@media (min-width: 31.25rem) { h1 { font-size: 36px !important; } }
+
+h2 { font-size: 18px !important; }
+
+@media (min-width: 31.25rem) { h2 { font-size: 24px !important; line-height: 1.25; } }
+
+h3 { font-size: 16px !important; }
+
+@media (min-width: 31.25rem) { h3 { font-size: 18px !important; } }
+
+h4 { font-size: 11px !important; font-weight: 400; letter-spacing: 0.1em; }
+
+@media (min-width: 31.25rem) { h4 { font-size: 12px !important; } }
+
+h5 { font-size: 12px !important; }
+
+@media (min-width: 31.25rem) { h5 { font-size: 14px !important; } }
+
+h6 { font-size: 11px !important; }
+
+@media (min-width: 31.25rem) { h6 { font-size: 12px !important; } }
+
+::selection { color: #fff; background: #005c83; }
+
+a { color: #005c83; text-decoration: none; }
+
+a:not([class]) { text-decoration: underline; text-decoration-color: #eeebee; text-underline-offset: 2px; }
+
+a:not([class]):hover { text-decoration-color: rgba(0, 92, 131, 0.45); }
+
+tt, code { font-family: "Red Hat Mono", monospace; font-size: 0.75em; line-height: 1.4; }
+
+a:hover, a:focus { color: #ed8b00; }
+
+a:not([class]):hover, a:not([class]):focus { text-decoration-color: rgba(237, 139, 0, 0.45); }
+
+h1, h2, h3, h4, h5, h6, .section-heading { font-family: "Red Hat Display", sans-serif; font-weight: 900; }
+
+tt, code { font-size: 13.6px; }
+
+:not(pre, figure) > code { padding: 0 0.15em 0.1em; }
+
+.table>tbody>tr.rdf-inverse>td {
+ border-top:1px solid #d7d7d7
+}
+.table>tbody {
+    border-bottom: 1px solid #dddddd
+}
+tr:not(.rdf-inverse) + tr.rdf-inverse, tr.rdf-inverse + tr:not(.rdf-inverse) {
+    border-top: 4px solid #c0c0c0;
+}
+.table-striped>tbody>tr.rdf-inverse {
+ background-color:#f0f0f0
+}
+.table-striped>tbody>tr:nth-of-type(odd).rdf-inverse {
+ background-color:#eaeaea
+}
