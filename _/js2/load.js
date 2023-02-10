@@ -66,7 +66,7 @@
 	  fetchJsonLd(describeQuery)
 	    .then((json) => {
 	      document.getElementById('data').innerHTML = JSON.stringify(json)
-	      renderLd(iri, json)
+	      renderLd(iri, ldvConfig.datasetBase, ldvConfig.localMode, json)
 	      findMap(iri, json)
 	    })
 	} else {
@@ -75,5 +75,51 @@
       })
   }
 
-  window.loadResource = loadResource
+  const loadWindowResource = () => {
+    if (window.location.pathname.substring(0, 2) === '/_')
+      return
+
+    var resourceIri
+    var localRedir
+
+    if (window.location.pathname === '/' && window.location.search) {
+      resourceIri = window.location.search.substring(1) + window.location.hash
+    } else if (window.location.pathname === '/*' && window.location.search) {
+      resourceIri = window.location.search.substring(1) + window.location.hash
+      ldvConfig.localMode = true
+    }
+    else {
+      resourceIri = document.URL
+
+      const localModeSwitch = '&*local'
+      if (resourceIri.endsWith(localModeSwitch)) {
+	resourceIri = resourceIri.substring(0, resourceIri.length - localModeSwitch.length)
+	localRedir = true
+      }
+    }
+
+    if (ldvConfig.datasetBase)
+      resourceIri = resourceIri.replace(window.location.origin, ldvConfig.datasetBase)
+    else
+      ldvConfig.datasetBase = window.location.origin
+
+    if (localRedir) {
+      window.location.replace('/*?' + resourceIri)
+      return
+    }
+
+    loadResource(resourceIri)
+
+    const switchLink = document.getElementById('localswitch')
+    switchLink.innerHTML =
+      (ldvConfig.localMode ?
+       `<a href="` +
+       (resourceIri.slice(0, ldvConfig.datasetBase.length) === ldvConfig.datasetBase ?
+	resourceIri.slice(ldvConfig.datasetBase.length) : resourceIri) +
+       `">Global Browsing</a>` :
+       `<a href="` + document.URL + '&*local' + `">Local Browsing</a>`)
+  }
+
+  window.addEventListener('hashchange', (event) => window.location.reload())
+  window.addEventListener('DOMContentLoaded', (event) => loadWindowResource())
 })()

@@ -50,6 +50,13 @@
   <div class="row">
     <div class="col-lg-12">
       <ul class="list-unstyled">
+        <li class="pull-right" id="localswitch"></li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <ul class="list-unstyled">
         <li class="pull-right"><a href="#top">Back to top</a></li>
       </ul>
       <p>
@@ -63,15 +70,6 @@
 </footer>
 
 </div>
-
-<script>
-  if (window.location.pathname.substring(0, 2) !== '/_') {
-    if (window.location.pathname === '/' && window.location.search)
-      loadResource(window.location.search.substring(1) + window.location.hash)
-    else
-      loadResource(document.URL)
-  }
-</script>
 
 </body>
 </html>

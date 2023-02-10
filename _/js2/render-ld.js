@@ -6,7 +6,7 @@
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
   const titlePredicates = ['http://schema.org/name', 'http://schema.org/headline', 'http://purl.org/dc/terms/title', 'http://www.w3.org/2000/01/rdf-schema#label']
-  var globalPrefixMap
+  const globals = {}
 
   const hashCode = (s) => {
     var black = '000000'
@@ -42,12 +42,12 @@
 
     const localpart = parts[parts.length - 1]
     const begin = iri.substring(0, iri.length - localpart.length + 1)
-    if (globalPrefixMap) {
-      const prefixes = Object.keys(globalPrefixMap)
-      prefixes.sort(compareShortestValue(globalPrefixMap))
+    if (globals.prefixMap) {
+      const prefixes = Object.keys(globals.prefixMap)
+      prefixes.sort(compareShortestValue(globals.prefixMap))
       for (var i = 0; i < prefixes.length; ++i) {
 	var p = prefixes[i]
-	const pFull = globalPrefixMap[p]
+	const pFull = globals.prefixMap[p]
 	if (p === '@vocab')
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
@@ -125,14 +125,16 @@
   }
 
   const renderLink = (iri, label) => {
-    const origin = window.location.origin
+    const origin = globals.datasetBase
+
+    if (globals.localMode)
+      return '<a href="/*?' + iri + '" title="' + iri + '">' + label + '</a>'
 
     // open IRIs with the same origin in the same tab, all others in a new tab
     if (iri.slice(0, origin.length) === origin)
-      return '<a href="' + iri + '" title="' + iri + '">' + label + '</a>'
-    else
-      return '<a href="' + iri + '" title="' + iri + '" target="_blank">' + label + '</a>' // +
-    // '<sup><a href="/?' + iri + '" title="' + iri + '">*</a></sup>'
+      return '<a href="' + iri.slice(origin.length) + '" title="' + iri + '">' + label + '</a>'
+
+    return '<a href="' + iri + '" title="' + iri + '" target="_blank">' + label + '</a>'
   }
 
   const renderTitle = (myIri, graph, titlePredicates) => {
@@ -286,7 +288,7 @@
     var json = JSON.parse(element.innerHTML)
     */
 
-    globalPrefixMap = json['@context']
+    globals.prefixMap = json['@context']
     return jsonld.promises.flatten(json, {}).then(function (flat) {
       return jsonld.promises.expand(flat).then(function (json) {
 	// if data contains quads, merge them all together
@@ -301,13 +303,16 @@
     })
   }
 
-  const renderLd = (iri, json) => {
+  const renderLd = (iri, datasetBase, localMode, json) => {
     Promise.all([
       embeddedGraph({} /*'vocab'*/),
       embeddedGraph(json /*'data'*/)
     ]).then(function (results) {
-      var vocab = results[0]
-      var graph = results[1]
+      const vocab = results[0]
+      const graph = results[1]
+
+      globals.datasetBase = datasetBase
+      globals.localMode = localMode
 
       render('title', renderTitle(iri, graph, titlePredicates))
       render('subtitle', renderSticky(iri, graph))

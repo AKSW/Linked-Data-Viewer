@@ -6,6 +6,7 @@
       credentials: 'include',
       method: 'POST',
     },
+    datasetBase: window.location.origin,
     askQuery: iri => `ASK {
  {
     bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?s) .
