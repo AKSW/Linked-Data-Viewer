@@ -258,7 +258,7 @@
 	'</td>' +
 	'<td class="table-object col-lg-8">' +
 	objects.map(function (object) {
-	  return '<div style="max-height: 8ex; overflow: auto; text-overflow: ellipsis">' + renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') + '</div>'
+	  return '<div style="max-height: 23ex; overflow: auto; text-overflow: ellipsis">' + renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') + '</div>'
 	}).join('') + '</td>' +
 	'</tr>'
     }).join('')

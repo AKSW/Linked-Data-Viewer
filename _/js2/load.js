@@ -82,31 +82,13 @@
     var resourceIri
     var localRedir
 
-    if (window.location.pathname === '/' && window.location.search) {
-      resourceIri = window.location.search.substring(1) + window.location.hash
-    } else if (window.location.pathname === '/*' && window.location.search) {
-      resourceIri = window.location.search.substring(1) + window.location.hash
-      ldvConfig.localMode = true
-    }
-    else {
-      resourceIri = document.URL
+    ldvConfig.localMode = (window.location.pathname === '/*')
 
-      const localModeSwitch = '&*local'
-      if (resourceIri.endsWith(localModeSwitch)) {
-	resourceIri = resourceIri.substring(0, resourceIri.length - localModeSwitch.length)
-	localRedir = true
-      }
-    }
-
-    if (ldvConfig.datasetBase)
-      resourceIri = resourceIri.replace(window.location.origin, ldvConfig.datasetBase)
+    if ((window.location.pathname === '/' || window.location.pathname === '/*') &&
+	window.location.search)
+      resourceIri = window.location.search.substring(1) + window.location.hash
     else
-      ldvConfig.datasetBase = window.location.origin
-
-    if (localRedir) {
-      window.location.replace('/*?' + resourceIri)
-      return
-    }
+      resourceIri = ldvConfig.datasetBase + document.URL.slice(window.location.origin.length)
 
     loadResource(resourceIri)
 
@@ -117,7 +99,7 @@
        (resourceIri.slice(0, ldvConfig.datasetBase.length) === ldvConfig.datasetBase ?
 	resourceIri.slice(ldvConfig.datasetBase.length) : resourceIri) +
        `">Global Browsing</a>` :
-       `<a href="` + document.URL + '&*local' + `">Local Browsing</a>`)
+       `<a href="/*?${resourceIri}">Local Browsing</a>`)
   }
 
   window.addEventListener('hashchange', (event) => window.location.reload())

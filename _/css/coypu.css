@@ -32,17 +32,19 @@ h6 { font-size: 11px !important; }
 
 ::selection { color: #fff; background: #005c83; }
 
-a { color: #005c83; text-decoration: none; }
+button.link { background: inherit; border: inherit; padding: 0; }
 
-a:not([class]) { text-decoration: underline; text-decoration-color: #eeebee; text-underline-offset: 2px; }
+a, button.link { color: #005c83; text-decoration: none; }
 
-a:not([class]):hover { text-decoration-color: rgba(0, 92, 131, 0.45); }
+a:not([class]), button.link { text-decoration: underline; text-decoration-color: #eeebee; text-underline-offset: 2px; }
+
+a:not([class]):hover, button:hover.link { text-decoration-color: rgba(0, 92, 131, 0.45); }
 
 tt, code { font-family: "Red Hat Mono", monospace; font-size: 0.75em; line-height: 1.4; }
 
-a:hover, a:focus { color: #ed8b00; }
+a:hover, a:focus, button:hover.link, button:focus.link { color: #ed8b00; }
 
-a:not([class]):hover, a:not([class]):focus { text-decoration-color: rgba(237, 139, 0, 0.45); }
+a:not([class]):hover, a:not([class]):focus, button:hover.link, button:focus.link { text-decoration-color: rgba(237, 139, 0, 0.45); }
 
 h1, h2, h3, h4, h5, h6, .section-heading { font-family: "Red Hat Display", sans-serif; font-weight: 900; }
 
@@ -50,18 +52,18 @@ tt, code { font-size: 13.6px; }
 
 :not(pre, figure) > code { padding: 0 0.15em 0.1em; }
 
-.table>tbody>tr.rdf-inverse>td {
- border-top:1px solid #d7d7d7
+.table > tbody > tr.rdf-inverse > td {
+    border-top: 1px solid #d7d7d7;
 }
-.table>tbody {
-    border-bottom: 1px solid #dddddd
+.table > tbody {
+    border-bottom: 1px solid #dddddd;
 }
 tr:not(.rdf-inverse) + tr.rdf-inverse, tr.rdf-inverse + tr:not(.rdf-inverse) {
     border-top: 4px solid #c0c0c0;
 }
-.table-striped>tbody>tr.rdf-inverse {
- background-color:#f0f0f0
+.table-striped > tbody > tr.rdf-inverse {
+    background-color: #f0f0f0;
 }
-.table-striped>tbody>tr:nth-of-type(odd).rdf-inverse {
- background-color:#eaeaea
+.table-striped > tbody > tr:nth-of-type(odd).rdf-inverse {
+    background-color: #eaeaea;
 }
