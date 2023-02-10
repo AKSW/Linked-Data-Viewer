@@ -1,3 +1,4 @@
+version: '3.7'
 
 services:
   httpd:
@@ -7,18 +8,6 @@ services:
       - ./my-httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./root:/usr/local/apache2/htdocs
       - ./_:/usr/local/apache2/htdocs/_
-    networks:
-      - default
-      - sub
-    expose:
-      - 80
+    ports:
+      - 3084:80
     restart: unless-stopped
-    environment:
-      - VIRTUAL_HOST=data.coypu.org,metadata.coypu.org
-      - LETSENCRYPT_HOST=data.coypu.org,metadata.coypu.org
-
-networks:
-  default:
-  sub:
-    name: reverseproxy_sub
-    external: true
