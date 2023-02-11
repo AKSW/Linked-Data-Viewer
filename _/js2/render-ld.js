@@ -51,12 +51,12 @@
 	if (p === '@vocab')
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
-	  return '<span style="font-size: smaller; vertical-align: text-bottom; color:#' + hashCode(pFull) + '">&#9640;</span> '
-	    + '<span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">' + p + '</span><span>:</span></span>' + iri.substring(pFull.length)
+	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}'">&#9640;</span> `
+	    + `<span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}`
 	}
       }
     }
-    return '<span style="font-size: smaller; vertical-align: text-bottom; color:#' + hashCode(begin) + '">&#9640;</span> ' + localpart
+    return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span> ${localpart}`
   }
 
   const subjectLabel = (subject, titlePredicates) => {
@@ -127,14 +127,20 @@
   const renderLink = (iri, label) => {
     const origin = globals.datasetBase
 
+    const loadMore = (iri === 'urn:x-arq:more-results') ? ' onclick="return ldvLoadMore(this)"' : ''
+    var navigate
+
     if (globals.localMode)
-      return '<a href="/*?' + iri + '" title="' + iri + '">' + label + '</a>'
+      navigate = `/*?${iri}`
+    else if (iri.slice(0, origin.length) === origin)
+      navigate = iri.slice(origin.length)
 
-    // open IRIs with the same origin in the same tab, all others in a new tab
-    if (iri.slice(0, origin.length) === origin)
-      return '<a href="' + iri.slice(origin.length) + '" title="' + iri + '">' + label + '</a>'
-
-    return '<a href="' + iri + '" title="' + iri + '" target="_blank">' + label + '</a>'
+    return `<a href="${iri}" title="${iri}"` +
+      (loadMore ? loadMore :
+       // open IRIs with the same origin in the same tab, all others in a new tab
+       navigate ? ` onclick="return ldvNavigate('${navigate}',event)"` :
+       ' target="_blank"') +
+      `>${label}</a>`
   }
 
   const renderTitle = (myIri, graph, titlePredicates) => {
@@ -150,11 +156,11 @@
     if (!title)
       return ''
 
-    return '<h1>' + title + '</h1>'
+    return `<h1>${title}</h1>`
   }
 
   const renderSticky = (myIri, graph) => {
-    const resource = '<h4><a href="' + myIri + '">' + myIri + '</a></h4>'
+    const resource = `<h4><a href="${myIri}">${myIri}</a></h4>`
 
     const subject = graph.filter(function (subject) {
       return subject['@id'] === myIri
@@ -182,21 +188,23 @@
   }
 
   const renderBlankNode = (blankNode) => {
-    return '<a href="#' + blankNode + '">' + blankNode + '</a>'
+    return `<a href="#${blankNode}">${blankNode}</a>`
   }
 
   const renderLiteral = (literal) => {
     if (typeof literal === 'string') {
-      return '<span>' + literal + '</span>'
+      return `<span>${literal}</span>`
     } else {
       if ('@language' in literal) {
-	return '<span><span>' + literal['@value'] + '</span> ' +
-	  '<span>@<span>' + literal['@language'] + '</span></span></span>'
+	return `<span><span>${literal['@value']}</span> ` +
+	  `<span>@<span>${literal['@language']}</span></span></span>`
       } else if ('@type' in literal) {
-	return '<span><span>' + literal['@value'] + '</span> ' +
-	  '<span style="font-size: smaller">(<span>' + renderIri(literal['@type'], iriLabel(literal['@type'])) + '</span>)</span></span>'
+	return `<span><span>${literal['@value']}</span> ` +
+	  `<span style="font-size: smaller">(<span>` +
+	  renderIri(literal['@type'], iriLabel(literal['@type'])) +
+	  `</span>)</span></span>`
       } else {
-	return '<span><span>' + literal['@value'] + '</span></span>'
+	return `<span><span>${literal['@value']}</span></span>`
       }
     }
   }
@@ -217,12 +225,19 @@
     }
   }
 
+  const renderObjectElements = (objects) => {
+    return objects.map(function (object) {
+      return '<div style="max-height: 23ex; overflow: auto; text-overflow: ellipsis">' +
+	renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') +
+	'</div>'
+    }).join('')
+  }
+
   const renderTable = (myIri, subject, vocab) => {
     var head = '<thead class="table-subject"></thead>'
 
-    if (subject['@id'] !== myIri) {
-      head = '<thead><tr><th colspan="2">' + renderNode(subject) + '</th></tr></thead>'
-    }
+    if (subject['@id'] !== myIri)
+      head = `<thead><tr><th colspan="2">${renderNode(subject)}</th></tr></thead>`
 
     const predicates = Object.keys(subject).slice()
     predicates.sort()
@@ -231,42 +246,38 @@
       if (Array.isArray(objects)) {
 	objects = objects.slice()
 	objects.sort(nodeSort)
-    }
-
-    if (predicate.slice(0, 1) === '@') {
-      if (predicate === '@type') {
-        predicate = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-
-        objects = objects.map(function (type) {
-          return {'@id': type}
-        })
-      } else {
-        return ''
       }
-    }
 
-    var isReverse = (predicate.slice(0, 18) === 'urn:x-arq:reverse:')
-    if (isReverse)
-      predicate = predicate.slice(18)
+      if (predicate.slice(0, 1) === '@') {
+	if (predicate === '@type') {
+          predicate = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
 
-      return '<tr' + (isReverse ? ' class="rdf-inverse"' : '') + '>' +
-	'<td class="table-predicate col-lg-4"' + (isReverse ? ' style="padding-left: 1.5em"': '') + '>' +
+          objects = objects.map(function (type) {
+            return {'@id': type}
+          })
+	} else {
+          return ''
+	}
+      }
+
+      var isReverse = (predicate.slice(0, 18) === 'urn:x-arq:reverse:')
+      if (isReverse)
+	predicate = predicate.slice(18)
+
+      return `<tr${isReverse ? ' class="rdf-inverse"' : ''}>` +
+	`<td class="table-predicate col-lg-4"${isReverse ? ' style="padding-left: 1.5em"': ''}>` +
 	(predicate === 'urn:x-meta:originatingGraph' ? '<b style="text-variant: small-caps">source graph</b>' :
 	 (isReverse ? "is " : "") +
 	 renderPredicate(predicate, predicateLabel(predicate, vocab)) +
 	 (isReverse ? " of" : "")) +
-	'</td>' +
-	'<td class="table-object col-lg-8">' +
-	objects.map(function (object) {
-	  return '<div style="max-height: 23ex; overflow: auto; text-overflow: ellipsis">' + renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') + '</div>'
-	}).join('') + '</td>' +
-	'</tr>'
+	`</td>` +
+	`<td class="table-object col-lg-8">${renderObjectElements(objects)}</td>` +
+	`</tr>`
     }).join('')
 
-    return '<table id="' + subject['@id'] + '" class="table table-striped table-graph">' +
+    return `<table id="${subject['@id']}" class="table table-striped table-graph">` +
       head +
-      '<tbody>' + rows + '</tbody>' +
-      '</table>'
+      `<tbody>${rows}</tbody></table>`
   }
 
   const renderTables = (myIri, graph, vocab, titlePredicates) => {
@@ -288,7 +299,6 @@
     var json = JSON.parse(element.innerHTML)
     */
 
-    globals.prefixMap = json['@context']
     return jsonld.promises.flatten(json, {}).then(function (flat) {
       return jsonld.promises.expand(flat).then(function (json) {
 	// if data contains quads, merge them all together
@@ -304,6 +314,7 @@
   }
 
   const renderLd = (iri, datasetBase, localMode, json) => {
+    globals.prefixMap = json['@context']
     Promise.all([
       embeddedGraph({} /*'vocab'*/),
       embeddedGraph(json /*'data'*/)
@@ -322,5 +333,34 @@
     })
   }
 
+  const renderMoreResults = (json, s, p) => {
+    return embeddedGraph(json)
+      .then(graph => {
+	const subject = graph.find(elem => elem['@id'] === s)
+	if (!subject)
+	  return ''
+
+        if (p === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+	  p = '@type'
+
+	var objects = subject[p]
+	if (Array.isArray(objects)) {
+	  objects = objects.slice()
+	  objects.sort(nodeSort)
+	}
+
+	if (p === '@type') {
+          p = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+
+          objects = objects.map(function (type) {
+	    return {'@id': type}
+          })
+	}
+
+	return renderObjectElements(objects)
+      })
+  }
+
+  window.renderMoreResults = renderMoreResults
   window.renderLd = renderLd
 })()

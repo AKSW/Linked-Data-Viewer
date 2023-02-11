@@ -97,6 +97,42 @@
   }
 }
 `,
+    loadMoreQuery: (s, p, limit, offset) => `CONSTRUCT {
+  <${s}> <${p}> ?o .
+} {
+  { SELECT ?o {
+      <${s}> <${p}> ?o .
+    } LIMIT ${limit} OFFSET ${offset}
+  } UNION {
+    { SELECT (count(?ox) AS ?oCnt) {
+        {
+          SELECT ?ox {
+            <${s}> <${p}> ?ox
+          } LIMIT ${limit + 1} OFFSET ${offset}
+        }
+      }
+    } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
+  }
+}
+`,
+    loadMoreReverseQuery: (o, p, limit, offset) => `CONSTRUCT {
+  <${o}> <urn:x-arq:reverse:${p}> ?s .
+} {
+  { SELECT ?s {
+      ?s <${p}> <${o}> .
+    } LIMIT ${limit} OFFSET ${offset}
+  } UNION {
+    { SELECT (count(?sx) AS ?sCnt) {
+        {
+          SELECT ?sx {
+            ?sx <${p}> <${o}>
+          } LIMIT ${limit + 1} OFFSET ${offset}
+        }
+      }
+    } bind(if(?sCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?s)
+  }
+}
+`,
   }
 
   window.ldvConfig = ldvConfig

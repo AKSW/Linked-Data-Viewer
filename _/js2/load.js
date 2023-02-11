@@ -102,6 +102,43 @@
        `<a href="/*?${resourceIri}">Local Browsing</a>`)
   }
 
+  const ldvLoadMore = (elem) => {
+    var cell = elem.closest('td')
+    var row = cell.closest('tr')
+    var property = row.querySelector('a[href]')
+    var table = row.closest('table[id]')
+
+    if (!cell || !row || !property || !table)
+      return !false
+
+    const reverse = row.classList.contains('rdf-inverse')
+    const s = table.id
+    const p = reverse ? 'urn:x-arq:reverse:' + property.href : property.href
+
+    const loadMoreQuery = reverse ?
+	  ldvConfig.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1) :
+	  ldvConfig.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1)
+    fetchJsonLd(loadMoreQuery)
+      .then((json) => renderMoreResults(json, s, p))
+      .then((html) => {
+	cell.insertAdjacentHTML('beforeend', html)
+	elem.closest('div').remove()
+      })
+
+    return !true
+  }
+
+  const ldvNavigate = (target, event) => {
+    if (event.ctrlKey)
+      window.open(target, '_blank').focus()
+    else
+      window.location = target
+    return !true
+  }
+
   window.addEventListener('hashchange', (event) => window.location.reload())
   window.addEventListener('DOMContentLoaded', (event) => loadWindowResource())
+
+  window.ldvNavigate = ldvNavigate
+  window.ldvLoadMore = ldvLoadMore
 })()
