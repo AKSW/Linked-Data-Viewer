@@ -133,6 +133,31 @@
   }
 }
 `,
+    labelLang: 'en',
+    fetchLabelsQuery: (uris, lang) => `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+JSON {
+    "uri": ?uri,
+    "label": ?label,
+    "lang": ?lang
+  } WHERE {
+    VALUES ?uri { ${uris} }
+    LATERAL {
+      SELECT ?uri ?label ?lang {
+        {
+          ?uri rdfs:label|skos:prefLabel ?label .
+          FILTER(lang(?label) = "${lang}") .
+          BIND(lang(?label) AS ?lang) .
+        } UNION {
+          ?uri rdfs:label|skos:prefLabel ?label .
+          FILTER(lang(?label) = "") .
+          BIND(lang(?label) AS ?lang) .
+        }
+      } LIMIT 1
+    }
+  }
+`,
   }
 
   window.ldvConfig = ldvConfig

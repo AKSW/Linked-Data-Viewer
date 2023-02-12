@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, ldvConfig */
+/* global jsonld, makeMap, renderLd, renderMoreResults, renderLdvLabelConfig, ldvConfig */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -68,6 +68,7 @@
 	      document.getElementById('data').innerHTML = JSON.stringify(json)
 	      renderLd(iri, ldvConfig.datasetBase, ldvConfig.localMode, json)
 	      findMap(iri, json)
+	      renderLdvLabelConfig()
 	    })
 	} else {
 	  window.location.replace('/_/not_found')
@@ -119,20 +120,41 @@
 	  ldvConfig.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1) :
 	  ldvConfig.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1)
     fetchJsonLd(loadMoreQuery)
-      .then((json) => renderMoreResults(json, s, p))
-      .then((html) => {
-	cell.insertAdjacentHTML('beforeend', html)
-	elem.closest('div').remove()
+      .then((json) => {
+	const graph = JSON.parse(document.getElementById('data').innerHTML)
+	if (graph['@id'] === json['@id']) {
+	  const p = Object.keys(json).find(prop => !prop.startsWith('@'))
+	  graph[p].splice(
+	    graph[p].findIndex(
+	      e => typeof e === 'object' && e['@type'] === 'urn:x-arq:more-results'
+	    ), 1)
+	  graph[p].push(...json[p])
+	}
+	document.getElementById('data').innerHTML = JSON.stringify(graph)
+	return renderMoreResults(json, s, p, elem, cell)
       })
 
     return !true
   }
 
-  const ldvNavigate = (target, event) => {
+  const ldvNavigate = (elem, event) => {
+    const origin = ldvConfig.datasetBase
+    const iri = elem.href
+
+    var navigate
+
+    if (event.shiftKey || ldvConfig.localMode)
+      navigate = `/*?${iri}`
+    else if (iri.slice(0, origin.length) === origin)
+      navigate = iri.slice(origin.length)
+
+    if (!navigate || (event.shiftKey && ldvConfig.localMode))
+      return !false
+
     if (event.ctrlKey)
-      window.open(target, '_blank').focus()
+      window.open(navigate, '_blank').focus()
     else
-      window.location = target
+      window.location = navigate
     return !true
   }
 

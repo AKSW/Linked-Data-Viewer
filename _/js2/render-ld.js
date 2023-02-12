@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // based on https://github.com/zazuko/trifid-renderer-simple
 
-/* global jsonld */
+/* global jsonld, ldvAddLabels, ldvAddLabelsForUris */
 
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
@@ -52,11 +52,11 @@
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
 	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}'">&#9640;</span> `
-	    + `<span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}`
+	    + `<span class="ldv-label"><span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}</span>`
 	}
       }
     }
-    return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span> ${localpart}`
+    return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span> <span class="ldv-label">${localpart}</span>`
   }
 
   const subjectLabel = (subject, titlePredicates) => {
@@ -130,16 +130,12 @@
     const loadMore = (iri === 'urn:x-arq:more-results') ? ' onclick="return ldvLoadMore(this)"' : ''
     var navigate
 
-    if (globals.localMode)
-      navigate = `/*?${iri}`
-    else if (iri.slice(0, origin.length) === origin)
+    if (iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
 
     return `<a href="${iri}" title="${iri}"` +
-      (loadMore ? loadMore :
-       // open IRIs with the same origin in the same tab, all others in a new tab
-       navigate ? ` onclick="return ldvNavigate('${navigate}',event)"` :
-       ' target="_blank"') +
+      (loadMore ? loadMore : ' onclick="return ldvNavigate(this,event)"') +
+      (navigate ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
       `>${label}</a>`
   }
 
@@ -328,17 +324,19 @@
       render('title', renderTitle(iri, graph, titlePredicates))
       render('subtitle', renderSticky(iri, graph))
       render('graph', renderTables(iri, graph, vocab, titlePredicates))
+
+      ldvAddLabels()
     }).catch(function (error) {
       console.error(error)
     })
   }
 
-  const renderMoreResults = (json, s, p) => {
+  const renderMoreResults = (json, s, p, elem, cell) => {
     return embeddedGraph(json)
       .then(graph => {
 	const subject = graph.find(elem => elem['@id'] === s)
 	if (!subject)
-	  return ''
+	  return
 
         if (p === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
 	  p = '@type'
@@ -357,7 +355,13 @@
           })
 	}
 
-	return renderObjectElements(objects)
+	const newUris = objects.filter(e => e['@id']).map(e => e['@id'])
+
+	const moreHtml = renderObjectElements(objects)
+	cell.insertAdjacentHTML('beforeend', moreHtml)
+	elem.closest('div').remove()
+
+	ldvAddLabelsForUris(newUris, cell.querySelectorAll('a[href]'))
       })
   }
 
