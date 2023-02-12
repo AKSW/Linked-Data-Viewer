@@ -86,8 +86,11 @@
   }
 
   const renderNodeLabelOrPlain = (node) => {
-    if (typeof node === 'object')
+    if (typeof node === 'object') {
+      if ('@type' in node && node['@type'] === 'urn:x-arq:more-results')
+	return String.fromCodePoint(0x10fff)
       return renderNode(node, '@id' in node ? iriLabel(node['@id']) : '')
+    }
     return node
   }
 
