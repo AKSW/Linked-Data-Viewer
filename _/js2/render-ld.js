@@ -338,15 +338,15 @@
       const title = renderTitle(iri, graph, titlePredicates)
       if (title !== '')
 	render('title', title)
-      render('subtitle', renderSticky(iri, graph))
-      render('graph', renderTables(iri, graph, vocab, titlePredicates))
-
-      if (title === '')
+      else
 	getLdvLabelsForUris([iri]).then((json) => {
 	  const e = json.find(e => e.uri === iri)
 	  if (e)
 	    render('title', `<h1>${e.label}</h1>`)
 	})
+      render('subtitle', renderSticky(iri, graph))
+      render('graph', renderTables(iri, graph, vocab, titlePredicates))
+
       ldvAddLabels()
     }).catch(function (error) {
       console.error(error)
