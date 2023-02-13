@@ -53,6 +53,10 @@
 	  if (root[pGeoAsWKT][0]["@type"] == tGeoWktLiteral) {
 	    makeMap(root[pGeoAsWKT][0]["@value"])
 	  }
+	} else if (root['http://www.wikidata.org/prop/direct/P625']) {
+	  if (root['http://www.wikidata.org/prop/direct/P625'][0]["@type"] === tGeoWktLiteral) {
+	    makeMap(root['http://www.wikidata.org/prop/direct/P625'][0]["@value"])
+	  }
 	}
       })
   }
