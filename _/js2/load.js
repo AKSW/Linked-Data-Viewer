@@ -144,7 +144,7 @@
     var navigate
 
     if (event.shiftKey != ldvConfig.localMode)
-      navigate = `/*?${iri}`
+      navigate = (ldvConfig.localMode ? '/*?' : '/?') + iri
     else if (iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
 
