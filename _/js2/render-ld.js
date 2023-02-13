@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 // based on https://github.com/zazuko/trifid-renderer-simple
 
-/* global jsonld, ldvAddLabels, ldvAddLabelsForUris */
+/* global jsonld, ldvAddLabels, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsForUris */
 
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
-  const titlePredicates = ['http://schema.org/name', 'http://schema.org/headline', 'http://purl.org/dc/terms/title', 'http://www.w3.org/2000/01/rdf-schema#label']
+  const titlePredicates = ['http://schema.org/name', 'http://schema.org/headline', 'http://purl.org/dc/terms/title', 'http://www.w3.org/2000/01/rdf-schema#label', 'http://www.w3.org/2004/02/skos/core#prefLabel']
   const globals = {}
 
   const hashCode = (s) => {
@@ -59,9 +59,20 @@
     return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span> <span class="ldv-label">${localpart}</span>`
   }
 
+  const findPrefLabelLangValue = (values, lang) => {
+    const withLang = values.find(e => e['@language'] === lang)
+    if (withLang)
+      return withLang['@value']
+    const withoutLang = values.find(e => !'@language' in e)
+    if (withoutLang)
+      return withoutLang['@value']
+    return null
+  }
+
   const subjectLabel = (subject, titlePredicates) => {
+    const labelLang = getLdvLabelLang()
     return titlePredicates.reduce(function (label, titlePredicate) {
-      return label || (titlePredicate in subject ? subject[titlePredicate][0]['@value'] : null)
+      return label || (titlePredicate in subject ? findPrefLabelLangValue(subject[titlePredicate], labelLang) : null)
     }, null)
   }
 
@@ -324,10 +335,18 @@
       globals.datasetBase = datasetBase
       globals.localMode = localMode
 
-      render('title', renderTitle(iri, graph, titlePredicates))
+      const title = renderTitle(iri, graph, titlePredicates)
+      if (title !== '')
+	render('title', title)
       render('subtitle', renderSticky(iri, graph))
       render('graph', renderTables(iri, graph, vocab, titlePredicates))
 
+      if (title === '')
+	getLdvLabelsForUris([iri]).then((json) => {
+	  const e = json.find(e => e.uri === iri)
+	  if (e)
+	    render('title', `<h1>${e.label}</h1>`)
+	})
       ldvAddLabels()
     }).catch(function (error) {
       console.error(error)

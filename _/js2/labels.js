@@ -16,11 +16,9 @@
     if (!uris.length)
       return
 
-    var values = uris.map(e => `<${e}>`).join(' ')
-    var query = ldvConfig.fetchLabelsQuery(values, ldvConfig.labelLang)
     var showLabels = isShowLabels()
 
-    fetchLabelsQuery(query).then((json) => {
+    getLdvLabelsForUris(uris).then((json) => {
       var label = {}
       var lang = {}
 
@@ -48,12 +46,20 @@
     })
   }
 
+  const getLdvLabelsForUris = (uris) => {
+    var values = uris.map(e => `<${e}>`).join(' ')
+    var query = ldvConfig.fetchLabelsQuery(values, getLdvLabelLang())
+
+    return fetchLabelsQuery(query)
+  }
+
   const ldvAddLabels = () => {
     const root = document.querySelector('#graph table[id]')
     if (!root)
       return
-    const links = root.querySelectorAll('a[href]')
+    const links = document.querySelectorAll('#graph table[id] a[href], #subtitle p a[href]')
     const uris = Array.from(new Set(Array.from(links).map(e => e.href)))
+    uris.sort()
     ldvAddLabelsForUris(uris, links)
   }
 
@@ -61,11 +67,25 @@
     return window.localStorage.getItem('/ldv/loadlabels') === null
   }
 
+  const getLdvLabelLang = () => {
+    const localLang = window.localStorage.getItem('/ldv/labellang')
+    if (localLang)
+      return localLang
+    else
+      return ldvConfig.labelLang
+  }
+
   const renderLdvLabelConfig = () => {
     const labelConfigHtml = document.getElementById('loadlabels')
     const checked = isShowLabels()
+    const currentLang = getLdvLabelLang()
     labelConfigHtml.innerHTML = `<input type="checkbox" onclick="ldvChangeLabelConfig(this)" id="loadlabelsx"${checked ? ' checked' :''} />` +
-      `<label for="loadlabelsx">Resolve labels</label>`
+      `<label for="loadlabelsx">Resolve labels</label>` +
+      (ldvConfig.labelLangChoice.length > 1 ?
+       ` <select style="padding: 0 1em 0 4pt" onchange="ldvChangeLabelLanguage(this)" id="loadlabelslang">` +
+       ldvConfig.labelLangChoice.map(lang => `<option value="${lang}"${currentLang === lang ? ' selected' : ''}>${lang}</option>`) +
+       `</select>` :
+       '')
   }
 
   const ldvChangeLabelConfig = (elem) => {
@@ -76,8 +96,19 @@
     window.location.reload()
   }
 
+  const ldvChangeLabelLanguage = (elem) => {
+    if (elem.value === ldvConfig.labelLang)
+      window.localStorage.removeItem('/ldv/labellang')
+    else
+      window.localStorage.setItem('/ldv/labellang', elem.value)
+    window.location.reload()
+  }
+
   window.renderLdvLabelConfig = renderLdvLabelConfig
+  window.getLdvLabelLang = getLdvLabelLang
+  window.ldvChangeLabelLanguage = ldvChangeLabelLanguage
   window.ldvChangeLabelConfig = ldvChangeLabelConfig
   window.ldvAddLabels = ldvAddLabels
   window.ldvAddLabelsForUris = ldvAddLabelsForUris
+  window.getLdvLabelsForUris = getLdvLabelsForUris
 })()

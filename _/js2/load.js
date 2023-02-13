@@ -128,7 +128,7 @@
 	    graph[p].findIndex(
 	      e => typeof e === 'object' && e['@type'] === 'urn:x-arq:more-results'
 	    ), 1)
-	  graph[p].push(...json[p])
+	  graph[p].push(...(Array.isArray(json[p]) ? json[p] : [json[p]]))
 	}
 	document.getElementById('data').innerHTML = JSON.stringify(graph)
 	return renderMoreResults(json, s, p, elem, cell)
@@ -143,12 +143,12 @@
 
     var navigate
 
-    if (event.shiftKey || ldvConfig.localMode)
+    if (event.shiftKey != ldvConfig.localMode)
       navigate = `/*?${iri}`
     else if (iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
 
-    if (!navigate || (event.shiftKey && ldvConfig.localMode))
+    if (!navigate)
       return !false
 
     if (event.ctrlKey)
