@@ -8,15 +8,17 @@
   const titlePredicates = ['http://schema.org/name', 'http://schema.org/headline', 'http://purl.org/dc/terms/title', 'http://www.w3.org/2000/01/rdf-schema#label', 'http://www.w3.org/2004/02/skos/core#prefLabel']
   const globals = {}
 
+  const mod = (n, d) => ((n % d) + d) % d
+
   const hashCode = (s) => {
     var black = '000000'
     var hash = s.split('').reduce(function(a, b) {
       a = ((a << 5) - a) + b.charCodeAt(0)
       return a & a
     }, 0)
-    hash = (hash & 16777215)
-    hash = hash.toString(16)
-    return black.substring(0, black.length - hash.length) + hash
+    hash = mod(hash, 0xffffff).toString(16)
+    hash = black.substring(0, 6 - hash.length) + hash
+    return hash.charAt(0) + hash.charAt(3) + hash.charAt(1) + hash.charAt(4) + hash.charAt(2) + hash.charAt(5)
   }
 
   const compareShortestValue = (map) => (a, b) => {
@@ -51,7 +53,7 @@
 	if (p === '@vocab')
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
-	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}'">&#9640;</span> `
+	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}">&#9640;</span> `
 	    + `<span class="ldv-label"><span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}</span>`
 	}
       }
