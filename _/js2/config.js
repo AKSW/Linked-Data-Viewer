@@ -31,69 +31,69 @@
   {
     SELECT ?x {
       {
-        bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?x) 
+        bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?x)
       } UNION {
-        bind(<${iri}> AS ?x) 
-      } 
-    } 
-  } SERVICE <loop:> {
+        bind(<${iri}> AS ?x)
+      }
+    }
+  } LATERAL {
     {
       bind(?x AS ?s) .
-      SERVICE <loop:> {
+      LATERAL {
         {
           {
-            SELECT ?p {
-              ?s ?p [] 
-            } GROUP BY ?p LIMIT 100 
-          } SERVICE <loop:> {
+            SELECT ?s ?p {
+              ?s ?p []
+            } GROUP BY ?s ?p LIMIT 100
+          } LATERAL {
             {
-              SELECT ?o {
-                ?s ?p ?o 
-              } LIMIT 10 
+              SELECT ?s ?p ?o {
+                ?s ?p ?o
+              } LIMIT 10
             } UNION {
-              SERVICE <loop:> {
-                SELECT (count(?ox) AS ?oCnt) {
+              LATERAL {
+                SELECT ?s ?p (count(?ox) AS ?oCnt) {
                   {
-                    SELECT ?ox {
-                      ?s ?p ?ox 
-                    } LIMIT 11 
-                  } 
-                } 
-              } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o) 
-            } 
-          } 
+                    SELECT ?s ?p ?ox {
+                      ?s ?p ?ox
+                    } LIMIT 11
+                  }
+                }  GROUP BY ?s ?p
+              } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
+            }
+          }
         } UNION {
-          optional {
-            graph ?o {
-              ?s a ?ox 
-            } 
-          } bind(if(bound(?o),<urn:x-meta:originatingGraph>,coalesce()) AS ?p) 
-        } 
+          OPTIONAL {
+            GRAPH ?o {
+              ?s a ?ox
+            }
+          } bind(if(bound(?o),<urn:x-meta:originatingGraph>,coalesce()) AS ?p)
+        }
       }
     } UNION {
       bind(?x AS ?s) .
-      SERVICE <loop:> {
+      LATERAL {
         {
-          SELECT ?rp {
-            [] ?rp ?s 
-          } GROUP BY ?rp LIMIT 100 
-        } SERVICE <loop:> {
+          SELECT ?s ?rp {
+            [] ?rp ?s
+          } GROUP BY ?s ?rp LIMIT 100
+        } LATERAL {
           {
-            SELECT ?o {
-              ?o ?rp ?s 
-            } LIMIT 10 
+            SELECT ?s ?rp ?o {
+              ?o ?rp ?s
+            } LIMIT 10
           } UNION {
-            SERVICE <loop:> {
-              SELECT (count(?ox) AS ?oCnt) {
+            LATERAL {
+              SELECT ?s ?rp (count(?ox) AS ?oCnt) {
                 {
-                  SELECT ?ox {
+                  SELECT ?s ?rp ?ox {
                     ?ox ?rp ?s
-                  } LIMIT 11 
-                } 
-              } 
-            } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o) 
-          } 
-        } 
+                  } LIMIT 11
+                }
+              } GROUP BY ?s ?rp
+            } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
+          }
+        }
       }
    bind(uri(concat('urn:x-arq:reverse:',str(?rp))) AS ?p) }
   }
