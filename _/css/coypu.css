@@ -67,3 +67,33 @@ tr:not(.rdf-inverse) + tr.rdf-inverse, tr.rdf-inverse + tr:not(.rdf-inverse) {
 .table-striped > tbody > tr:nth-of-type(odd).rdf-inverse {
     background-color: #eaeaea;
 }
+
+header.float {
+    position: absolute;
+    top: calc(64px + 2em);
+    right: calc(1em + 15px);
+}
+
+@media (min-width: 31.25rem) {
+header.float {
+    right: calc(2em + 15px);
+}
+}
+
+@media (min-width: 768px) {
+header.float {
+    right: calc(50vw - 360px);
+}
+}
+
+@media (min-width: 992px) {
+header.float {
+    right: calc(50vw - 470px);
+}
+}
+
+@media (min-width: 1200px) {
+header.float {
+    right: calc(50vw - 570px);
+}
+}

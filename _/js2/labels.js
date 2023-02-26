@@ -38,7 +38,7 @@
 	if (showLabels)
 	  labelBox.innerHTML = `<em>${label[e.href]}` +
 	    (lang[e.href] ?
-	     ` <span style="font-weight: 300; font-size: smaller"><span>@</span><span style="font-size: smaller">${lang[e.href]}</span></span>` :
+	     `&nbsp;<span style="font-weight: 300; font-size: smaller"><span>@</span><span style="font-size: smaller">${lang[e.href]}</span></span>` :
 	     '') + `</em>`
 	else
 	  e.title = label[e.href] + (lang[e.href] ? ' @' + lang[e.href] : '')

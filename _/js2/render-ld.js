@@ -53,12 +53,12 @@
 	if (p === '@vocab')
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
-	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}">&#9640;</span> `
+	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}">&#9640;</span>&nbsp;`
 	    + `<span class="ldv-label"><span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}</span>`
 	}
       }
     }
-    return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span> <span class="ldv-label">${localpart}</span>`
+    return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span>&nbsp;<span class="ldv-label">${localpart}</span>`
   }
 
   const findPrefLabelLangValue = (values, lang) => {
@@ -208,7 +208,7 @@
       return `<span>${literal}</span>`
     } else {
       if ('@language' in literal) {
-	return `<span><span>${literal['@value']}</span> ` +
+	return `<span><span>${literal['@value']}</span>&nbsp;` +
 	  `<span>@<span>${literal['@language']}</span></span></span>`
       } else if ('@type' in literal) {
 	return `<span><span>${literal['@value']}</span> ` +
