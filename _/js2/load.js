@@ -180,7 +180,7 @@
       return !false
 
     if (event.ctrlKey)
-      window.open(navigate, '_blank').focus()
+      window.open(navigate, '_blank')
     else
       window.location = navigate
     return !true
