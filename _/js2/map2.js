@@ -1,4 +1,4 @@
-/* global wellknown, L */
+/* global wellknown, L, ResizeObserver */
 
 (() => {
   const makeMap = (lit) => {

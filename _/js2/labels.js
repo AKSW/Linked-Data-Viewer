@@ -16,11 +16,11 @@
     if (!uris.length)
       return
 
-    var showLabels = isShowLabels()
+    const showLabels = isShowLabels()
 
     getLdvLabelsForUris(uris).then((json) => {
-      var label = {}
-      var lang = {}
+      const label = {}
+      const lang = {}
 
       json.forEach(e => {
 	label[e.uri] = e.label
@@ -31,7 +31,7 @@
 	if (!label[e.href])
 	  return
 
-	var labelBox = e.querySelector('.ldv-label')
+	const labelBox = e.querySelector('.ldv-label')
 	if (!labelBox)
 	  return
 
@@ -47,8 +47,9 @@
   }
 
   const getLdvLabelsForUris = (uris) => {
-    var values = uris.map(e => `<${e}>`).join(' ')
-    var query = ldvConfig.fetchLabelsQuery(values, getLdvLabelLang())
+    const infer = ldvConfig.infer
+    const values = uris.map(e => `<${e}>`).join(' ')
+    const query = ldvConfig.fetchLabelsQuery(values, getLdvLabelLang(), infer)
 
     return fetchLabelsQuery(query)
   }

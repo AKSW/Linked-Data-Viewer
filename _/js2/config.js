@@ -9,6 +9,7 @@
     datasetBase: window.location.origin,
     labelLang: 'en',
     labelLangChoice: ['en', 'de', 'fr'],
+    infer: false,
     askQuery: iri => `ASK {
  {
     bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?s) .
@@ -25,9 +26,10 @@
  }
 }
 `,
-    describeQuery: iri => `CONSTRUCT {
+    describeQuery: (iri, infer) => `CONSTRUCT {
   ?s ?p ?o .
 } {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   {
     SELECT ?x {
       {
@@ -97,11 +99,13 @@
       }
    bind(uri(concat('urn:x-arq:reverse:',str(?rp))) AS ?p) }
   }
+  ${ infer ? '}' : '' }
 }
 `,
-    loadMoreQuery: (s, p, limit, offset) => `CONSTRUCT {
+    loadMoreQuery: (s, p, limit, offset, infer) => `CONSTRUCT {
   <${s}> <${p}> ?o .
 } {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?o {
       <${s}> <${p}> ?o .
     } LIMIT ${limit} OFFSET ${offset}
@@ -115,11 +119,13 @@
       }
     } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
   }
+  ${ infer ? '}' : '' }
 }
 `,
-    loadMoreReverseQuery: (o, p, limit, offset) => `CONSTRUCT {
+    loadMoreReverseQuery: (o, p, limit, offset, infer) => `CONSTRUCT {
   <${o}> <urn:x-arq:reverse:${p}> ?s .
 } {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?s {
       ?s <${p}> <${o}> .
     } LIMIT ${limit} OFFSET ${offset}
@@ -133,9 +139,10 @@
       }
     } bind(if(?sCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?s)
   }
+  ${ infer ? '}' : '' }
 }
 `,
-    fetchLabelsQuery: (uris, lang) => `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    fetchLabelsQuery: (uris, lang, infer) => `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 JSON {
@@ -145,6 +152,7 @@ JSON {
   } WHERE {
     VALUES ?uri { ${uris} }
     LATERAL {
+      ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
       SELECT ?uri ?label ?lang {
         {
           ?uri rdfs:label|skos:prefLabel ?label .
@@ -156,6 +164,7 @@ JSON {
           BIND(lang(?label) AS ?lang) .
         }
       } LIMIT 1
+      ${ infer ? '}' : '' }
     }
   }
 `,

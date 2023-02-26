@@ -29,8 +29,11 @@
   }
 
   const findGeo = (iri) => {
+    const infer = ldvConfig.infer
     const geoQuery = `CONSTRUCT WHERE {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   <${iri}> <${pGeoAsWKT}> ?wktLiteral
+  ${ infer ? '}' : '' }
 }
 `
     fetchJsonLd(geoQuery)
@@ -62,8 +65,9 @@
   }
 
   const loadResource = (iri) => {
+    const infer = ldvConfig.infer
     const askQuery = ldvConfig.askQuery(iri)
-    const describeQuery = ldvConfig.describeQuery(iri)
+    const describeQuery = ldvConfig.describeQuery(iri, infer)
     fetchPlain(askQuery)
       .then((text) => {
 	if (text.trim() === 'yes') {
@@ -87,6 +91,9 @@
     var resourceIri
     var localRedir
 
+    const infer = window.localStorage.getItem('/ldv/infer')
+    ldvConfig.infer = infer ? true : false
+
     ldvConfig.localMode = (window.location.pathname === '/*')
 
     if ((window.location.pathname === '/' || window.location.pathname === '/*') &&
@@ -96,6 +103,12 @@
       resourceIri = ldvConfig.datasetBase + document.URL.slice(window.location.origin.length)
 
     loadResource(resourceIri)
+
+    const switchInfer = document.getElementById('inferswitch')
+    switchInfer.innerHTML =
+      `<input type="checkbox" onclick="ldvChangeInferConfig(this)" ` +
+      `id="inferx"${ldvConfig.infer ? ' checked' :''} />` +
+      `<label for="inferx">Calculate inferences</label>`
 
     const switchLink = document.getElementById('localswitch')
     switchLink.innerHTML =
@@ -107,22 +120,31 @@
        `<a href="/*?${resourceIri}">Local Browsing</a>`)
   }
 
+  const ldvChangeInferConfig = (elem) => {
+    if (elem.checked)
+      window.localStorage.setItem('/ldv/infer', true)
+    else
+      window.localStorage.removeItem('/ldv/infer')
+    window.location.reload()
+  }
+
   const ldvLoadMore = (elem) => {
-    var cell = elem.closest('td')
-    var row = cell.closest('tr')
-    var property = row.querySelector('a[href]')
-    var table = row.closest('table[id]')
+    const cell = elem.closest('td')
+    const row = cell.closest('tr')
+    const property = row.querySelector('a[href]')
+    const table = row.closest('table[id]')
 
     if (!cell || !row || !property || !table)
       return !false
 
+    const infer = ldvConfig.infer
     const reverse = row.classList.contains('rdf-inverse')
     const s = table.id
     const p = reverse ? 'urn:x-arq:reverse:' + property.href : property.href
 
     const loadMoreQuery = reverse ?
-	  ldvConfig.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1) :
-	  ldvConfig.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1)
+	  ldvConfig.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1, infer) :
+	  ldvConfig.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1, infer)
     fetchJsonLd(loadMoreQuery)
       .then((json) => {
 	const graph = JSON.parse(document.getElementById('data').innerHTML)
@@ -167,4 +189,5 @@
 
   window.ldvNavigate = ldvNavigate
   window.ldvLoadMore = ldvLoadMore
+  window.ldvChangeInferConfig = ldvChangeInferConfig
 })()
