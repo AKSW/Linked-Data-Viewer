@@ -46,7 +46,7 @@
           {
             SELECT ?s ?p {
               ?s ?p []
-            } GROUP BY ?s ?p LIMIT 100
+            } GROUP BY ?s ?p LIMIT 1000
           } LATERAL {
             {
               SELECT ?s ?p ?o {
