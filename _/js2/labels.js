@@ -16,7 +16,7 @@
     if (!uris.length)
       return
 
-    const showLabels = isShowLabels()
+    const showLabels = isLdvShowLabels()
 
     getLdvLabelsForUris(uris).then((json) => {
       const label = {}
@@ -64,7 +64,7 @@
     ldvAddLabelsForUris(uris, links)
   }
 
-  const isShowLabels = () => {
+  const isLdvShowLabels = () => {
     return window.localStorage.getItem('/ldv/loadlabels') === null
   }
 
@@ -78,7 +78,7 @@
 
   const renderLdvLabelConfig = () => {
     const labelConfigHtml = document.getElementById('loadlabels')
-    const checked = isShowLabels()
+    const checked = isLdvShowLabels()
     const currentLang = getLdvLabelLang()
     labelConfigHtml.innerHTML = `<input type="checkbox" onclick="ldvChangeLabelConfig(this)" id="loadlabelsx"${checked ? ' checked' :''} />` +
       `<label for="loadlabelsx">Resolve labels</label>` +
@@ -106,6 +106,7 @@
   }
 
   window.renderLdvLabelConfig = renderLdvLabelConfig
+  window.isLdvShowLabels = isLdvShowLabels
   window.getLdvLabelLang = getLdvLabelLang
   window.ldvChangeLabelLanguage = ldvChangeLabelLanguage
   window.ldvChangeLabelConfig = ldvChangeLabelConfig

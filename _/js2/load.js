@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderMoreResults, renderLdvLabelConfig, ldvConfig */
+/* global jsonld, makeMap, renderLd, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvConfig */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -90,8 +90,55 @@
     if (window.location.pathname.substring(0, 2) === '/_')
       return
 
+    if (window.location.pathname.slice(0, 2) === '/*' && window.location.pathname.length > 2) {
+      let config = window.location.pathname.split('*')
+      let result = {}
+      config.shift()
+      config.forEach((e) => {
+	switch (e) {
+	case "infer1":
+	  window.localStorage.setItem('/ldv/infer', true)
+	  break
+	case "infer0":
+	  window.localStorage.removeItem('/ldv/infer')
+	  break
+	case "label1":
+	  window.localStorage.removeItem('/ldv/loadlabels')
+	  break
+	case "label0":
+	  window.localStorage.setItem('/ldv/loadlabels', false)
+	  break
+	case "":
+	  result.localMode = true
+	  break
+	default:
+	  if (e.slice(0, 4) === "lang") {
+	    const value = e.slice(4)
+	    if (value !== ldvConfig.labelLang && ldvConfig.labelLangChoice.includes(value))
+	      window.localStorage.setItem('/ldv/labellang', value)
+	    else
+	      window.localStorage.removeItem('/ldv/labellang')
+	  }
+	}
+      })
+
+      const origin = ldvConfig.datasetBase
+      const iri = window.location.search.substring(1) + window.location.hash
+
+      var navigate
+
+      if (result.localMode)
+	navigate = '/*?' + iri
+      else if (iri.slice(0, origin.length) === origin)
+	navigate = iri.slice(origin.length)
+      else
+	navigate = '/?' + iri
+
+      window.location.replace(navigate)
+      return
+    }
+
     var resourceIri
-    var localRedir
 
     const infer = window.localStorage.getItem('/ldv/infer')
     ldvConfig.infer = infer ? true : false
@@ -117,9 +164,17 @@
       (ldvConfig.localMode ?
        `<a href="` +
        (resourceIri.slice(0, ldvConfig.datasetBase.length) === ldvConfig.datasetBase ?
-	resourceIri.slice(ldvConfig.datasetBase.length) : resourceIri) +
+	resourceIri.slice(ldvConfig.datasetBase.length) : `/?${resourceIri}`) +
        `">Global Browsing</a>` :
        `<a href="/*?${resourceIri}">Local Browsing</a>`)
+
+    const configLink = document.getElementById('configlink')
+    configLink.innerHTML = `<a href="/` +
+      `*infer${ ldvConfig.infer ? 1 : 0 }` +
+      `*label${ isLdvShowLabels() ? 1 : 0 }` +
+      `*lang${ getLdvLabelLang() }` +
+      (ldvConfig.localMode ? '*' : '') +
+      `?${resourceIri}">Link</a>`
   }
 
   const ldvChangeInferConfig = (elem) => {
