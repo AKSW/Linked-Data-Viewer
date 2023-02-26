@@ -30,7 +30,9 @@
 
   const findGeo = (iri) => {
     const infer = ldvConfig.infer
-    const geoQuery = `CONSTRUCT WHERE {
+    const geoQuery = `CONSTRUCT {
+  <${iri}> <${pGeoAsWKT}> ?wktLiteral
+} WHERE {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   <${iri}> <${pGeoAsWKT}> ?wktLiteral
   ${ infer ? '}' : '' }
