@@ -43,9 +43,15 @@
       bind(?x AS ?s) .
       LATERAL {
         {
+          OPTIONAL {
+            bind(<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> as ?p)
+            ?s ?p ?o
+          }
+        } UNION {
           {
             SELECT ?s ?p {
               ?s ?p []
+              filter(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
             } GROUP BY ?s ?p LIMIT 1000
           } LATERAL {
             {
