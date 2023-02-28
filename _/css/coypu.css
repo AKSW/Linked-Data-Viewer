@@ -79,6 +79,11 @@ header.float {
     right: calc(1em + 15px);
 }
 
+#title,
+#title:empty + #subtitle {
+    padding-right: 13em;
+}
+
 @media (min-width: 31.25rem) {
 header.float {
     right: calc(2em + 15px);
