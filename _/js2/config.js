@@ -7,6 +7,7 @@
       method: 'POST',
     },
     datasetBase: window.location.origin,
+    exploreUrl: 'https://explore.skynet.coypu.org/coypu-internal',
     labelLang: 'en',
     labelLangChoice: ['en', 'de', 'fr'],
     infer: false,

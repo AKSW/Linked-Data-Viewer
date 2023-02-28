@@ -175,6 +175,9 @@
       `*lang${ getLdvLabelLang() }` +
       (ldvConfig.localMode ? '*' : '') +
       `?${resourceIri}">Link</a>`
+
+    const exploreLink = document.getElementById('explorelink')
+    exploreLink.innerHTML = `<a href="${ ldvConfig.exploreUrl }#r=${ resourceIri }" target="_blank">Explore</a>`
   }
 
   const ldvChangeInferConfig = (elem) => {

@@ -68,6 +68,11 @@ tr:not(.rdf-inverse) + tr.rdf-inverse, tr.rdf-inverse + tr:not(.rdf-inverse) {
     background-color: #eaeaea;
 }
 
+header li > span + span::before {
+    content: "\00a0|\00a0";
+    display: inline-block;
+}
+
 header.float {
     position: absolute;
     top: calc(64px + 2em);
