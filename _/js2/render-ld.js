@@ -144,14 +144,19 @@
     const origin = globals.datasetBase
 
     const loadMore = (iri === 'urn:x-arq:more-results') ? ' onclick="return ldvLoadMore(this)"' : ''
-    var navigate
+    var navigate, same
 
     if (iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
 
+    if (!navigate && globals.etld1) {
+      let parsed = new URL(iri)
+      same = parsed.hostname === globals.etld1 || parsed.hostname.endsWith(`.${globals.etld1}`)
+    }
+
     return `<a href="${iri}" title="${iri}"` +
       (loadMore ? loadMore : ' onclick="return ldvNavigate(this,event)"') +
-      (navigate ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
+      (navigate || same ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
       `>${label}</a>`
   }
 
@@ -336,6 +341,20 @@
 
       globals.datasetBase = datasetBase
       globals.localMode = localMode
+      globals.etld1 = (() => {
+	var i = 0,
+	    domain = document.domain,
+	    p = domain.split('.'),
+	    s = '_findETLD1_' + (new Date()).getTime()
+
+	while (i < (p.length - 1) && document.cookie.indexOf(s + '=' + s) == -1) {
+	  domain = p.slice(-1 - (++i)).join('.')
+	  document.cookie = `${s}=${s};domain=${domain};`
+	}
+	document.cookie = `${s}=;expires=${(new Date(0)).toUTCString()};domain=${domain};`
+	return domain
+      })()
+
 
       const title = renderTitle(iri, graph, titlePredicates)
       if (title !== '')
