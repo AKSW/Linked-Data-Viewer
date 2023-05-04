@@ -41,80 +41,86 @@
     }
   } LATERAL {
     {
-      bind(?x AS ?s) .
+      bind(?x AS ?s_) .
       LATERAL {
         {
           OPTIONAL {
             bind(<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> as ?p)
-            ?s ?p ?o
+            ?s_ ?p ?o_ .
+            bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o)
           }
         } UNION {
           {
-            SELECT ?s ?p {
-              ?s ?p []
+            SELECT ?s_ ?p {
+              ?s_ ?p []
               filter(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
-            } GROUP BY ?s ?p LIMIT 1000
+            } GROUP BY ?s_ ?p LIMIT 1000
           } LATERAL {
             {
-              SELECT ?s ?p ?o {
-                ?s ?p ?o
+              SELECT ?s_ ?p ?o {
+                ?s_ ?p ?o_ .
+                bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o)
               } LIMIT 10
             } UNION {
               LATERAL {
-                SELECT ?s ?p (count(?ox) AS ?oCnt) {
+                SELECT ?s_ ?p (count(?ox) AS ?oCnt) {
                   {
-                    SELECT ?s ?p ?ox {
-                      ?s ?p ?ox
+                    SELECT ?s_ ?p ?ox {
+                      ?s_ ?p ?ox
                     } LIMIT 11
                   }
-                }  GROUP BY ?s ?p
+                }  GROUP BY ?s_ ?p
               } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
             }
           }
         } UNION {
           OPTIONAL {
             GRAPH ?o {
-              ?s a ?ox
+              ?s_ a ?ox
             }
           } bind(if(bound(?o),<urn:x-meta:originatingGraph>,coalesce()) AS ?p)
         }
       }
+      bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
     } UNION {
-      bind(?x AS ?s) .
+      bind(?x AS ?s_) .
       LATERAL {
         {
-          SELECT ?s ?rp {
-            [] ?rp ?s
-          } GROUP BY ?s ?rp LIMIT 100
+          SELECT ?s_ ?rp {
+            [] ?rp ?s_
+          } GROUP BY ?s_ ?rp LIMIT 100
         } LATERAL {
           {
-            SELECT ?s ?rp ?o {
-              ?o ?rp ?s
+            SELECT ?s_ ?rp ?o {
+              ?o_ ?rp ?s_ .
+              bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o)
             } LIMIT 10
           } UNION {
             LATERAL {
-              SELECT ?s ?rp (count(?ox) AS ?oCnt) {
+              SELECT ?s_ ?rp (count(?ox) AS ?oCnt) {
                 {
-                  SELECT ?s ?rp ?ox {
-                    ?ox ?rp ?s
+                  SELECT ?s_ ?rp ?ox {
+                    ?ox ?rp ?s_
                   } LIMIT 11
                 }
-              } GROUP BY ?s ?rp
+              } GROUP BY ?s_ ?rp
             } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
           }
         }
       }
-   bind(uri(concat('urn:x-arq:reverse:',str(?rp))) AS ?p) }
+      bind(uri(concat('urn:x-arq:reverse:',str(?rp))) AS ?p)
+      bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
+    }
   }
   ${ infer ? '}' : '' }
 }
 `,
     loadMoreQuery: (s, p, limit, offset, infer) => `CONSTRUCT {
-  <${s}> <${p}> ?o .
+  <${ s.startsWith('_:') ? 'bnode://' + s.slice(2) : s }> <${p}> ?o .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?o {
-      <${s}> <${p}> ?o .
+      <${s}> <${p}> ?o_ . bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o) .
     } LIMIT ${limit} OFFSET ${offset}
   } UNION {
     { SELECT (count(?ox) AS ?oCnt) {
@@ -130,11 +136,11 @@
 }
 `,
     loadMoreReverseQuery: (o, p, limit, offset, infer) => `CONSTRUCT {
-  <${o}> <urn:x-arq:reverse:${p}> ?s .
+  <${ o.startsWith('_:') ? 'bnode://' + o.slice(2) : o }> <urn:x-arq:reverse:${p}> ?s .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?s {
-      ?s <${p}> <${o}> .
+      ?s_ <${p}> <${o}> . bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
     } LIMIT ${limit} OFFSET ${offset}
   } UNION {
     { SELECT (count(?sx) AS ?sCnt) {
@@ -157,18 +163,20 @@ JSON {
     "label": ?label,
     "lang": ?lang
   } WHERE {
-    VALUES ?uri { ${uris} }
+    VALUES ?uri_ { ${uris} }
     LATERAL {
       ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
-      SELECT ?uri ?label ?lang {
+      SELECT ?uri ?uri_ ?label ?lang {
         {
-          ?uri rdfs:label|skos:prefLabel ?label .
+          ?uri_ rdfs:label|skos:prefLabel ?label .
           FILTER(lang(?label) = "${lang}") .
           BIND(lang(?label) AS ?lang) .
+          bind(if(isblank(?uri_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?uri_))),?uri_) as ?uri)
         } UNION {
-          ?uri rdfs:label|skos:prefLabel ?label .
+          ?uri_ rdfs:label|skos:prefLabel ?label .
           FILTER(lang(?label) = "") .
           BIND(lang(?label) AS ?lang) .
+          bind(if(isblank(?uri_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?uri_))),?uri_) as ?uri)
         }
       } LIMIT 1
       ${ infer ? '}' : '' }

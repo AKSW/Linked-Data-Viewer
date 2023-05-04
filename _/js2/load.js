@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvConfig */
+/* global jsonld, makeMap, renderLd, renderBlankNodeSub, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveBnodes, ldvConfig */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -70,20 +70,42 @@
     const infer = ldvConfig.infer
     const askQuery = ldvConfig.askQuery(iri)
     const describeQuery = ldvConfig.describeQuery(iri, infer)
+    const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     fetchPlain(askQuery)
       .then((text) => {
 	if (text.trim() === 'yes') {
 	  fetchJsonLd(describeQuery)
 	    .then((json) => {
 	      document.getElementById('data').innerHTML = JSON.stringify(json)
-	      renderLd(iri, ldvConfig.datasetBase, ldvConfig.localMode, json)
-	      findMap(iri, json)
+	      renderLd(bIri, ldvConfig.datasetBase, ldvConfig.localMode, json)
+	      findMap(bIri, json)
 	      renderLdvLabelConfig()
 	    })
 	} else {
 	  window.location.replace('/_/not_found')
 	}
       })
+  }
+
+  const ldvLoadSubResource = (iri) => {
+    const infer = ldvConfig.infer
+    const askQuery = ldvConfig.askQuery(iri)
+    const describeQuery = ldvConfig.describeQuery(iri, infer)
+    const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
+    return new Promise((resolve, reject) => {
+      fetchPlain(askQuery)
+	.then((text) => {
+	  if (text.trim() === 'yes') {
+	    fetchJsonLd(describeQuery)
+	      .then((json) => {
+		renderBlankNodeSub(bIri, json)
+		  .then(resolve)
+	      })
+	  } else {
+	    reject('not_found')
+	  }
+	})
+    })
   }
 
   const loadWindowResource = () => {
@@ -223,22 +245,34 @@
     return !true
   }
 
+  const loadInline = (iri, elem) => {
+    const e = document.getElementById(iri)
+    if (e)
+      e.parentElement.parentElement.scrollIntoView()
+    else
+      ldvResolveBnodes([iri], [elem])
+  }
+
   const ldvNavigate = (elem, event) => {
     const origin = ldvConfig.datasetBase
     const iri = elem.href
 
     var navigate
 
-    if (event.shiftKey != ldvConfig.localMode)
+    if (iri.slice(0, 8) === 'bnode://')
+      navigate = (ldvConfig.localMode ? '/*?_:' : '/?_:') + iri.slice(8)
+    else if (event.shiftKey != ldvConfig.localMode)
       navigate = (ldvConfig.localMode ? '/*?' : '/?') + iri
     else if (iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
 
-    if (!navigate)
+    if (!navigate && !event.altKey)
       return !false
 
     if (event.ctrlKey)
       window.open(navigate, '_blank')
+    else if (event.altKey)
+      loadInline(iri, elem)
     else
       window.location = navigate
     return !true
@@ -249,5 +283,6 @@
 
   window.ldvNavigate = ldvNavigate
   window.ldvLoadMore = ldvLoadMore
+  window.ldvLoadSubResource = ldvLoadSubResource
   window.ldvChangeInferConfig = ldvChangeInferConfig
 })()

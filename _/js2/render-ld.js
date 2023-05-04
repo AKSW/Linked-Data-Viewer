@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // based on https://github.com/zazuko/trifid-renderer-simple
 
-/* global jsonld, ldvAddLabels, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsForUris */
+/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsForUris */
 
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
@@ -54,7 +54,7 @@
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
 	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}">&#9640;</span>&nbsp;`
-	    + `<span class="ldv-label"><span style="font-size: smaller; font-weight: 300; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}</span>`
+	    + `<span class="ldv-label"><span style="font-size: smaller; font-weight: lighter; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}</span>`
 	}
       }
     }
@@ -177,7 +177,7 @@
   }
 
   const renderSticky = (myIri, graph) => {
-    const resource = `<h4><a href="${myIri}">${myIri}</a></h4>`
+    const resource = `<h4><a href="${myIri}">${bnodeMap(myIri, false)}</a></h4>`
 
     const subject = graph.filter(function (subject) {
       return subject['@id'] === myIri
@@ -226,10 +226,43 @@
     }
   }
 
+  const bnodeMap = (bnodeId, returnNum) => {
+    if (!bnodeId.startsWith('bnode://')) {
+      if (returnNum)
+	throw `Non-bnode ${bnodeId} in bnodeMap`
+      else
+	return bnodeId
+    }
+
+    const id = bnodeId.substring(8)
+    const dict = (globals.bnodes ||= { _ : 0 })
+    let num
+
+    if (id in dict) {
+      num = dict[id]
+    } else {
+      num = dict[id] = dict._
+      dict._++
+    }
+
+    if (returnNum)
+      return num
+    else
+      return `_:b${num}`
+  }
+
+  const renderBlankNodeLink = (bnodeId) => {
+    const num = bnodeMap(bnodeId, true)
+
+    return `<a style="--bnum:${num}" href="${bnodeId}" onclick="return ldvNavigate(this,event)">_:b${num}</a>`
+  }
+
   const renderNode = (node, label) => {
     if (typeof node === 'object') {
       if ('@id' in node) {
-	if (node['@id'].indexOf('_:') !== 0) {
+	if (node['@id'].startsWith('bnode://')) {
+	  return renderBlankNodeLink(node['@id']);
+	} else if (node['@id'].indexOf('_:') !== 0) {
           return renderIri(node['@id'], label)
 	} else {
           return renderBlankNode(node['@id'])
@@ -369,8 +402,23 @@
       render('graph', renderTables(iri, graph, vocab, titlePredicates))
 
       ldvAddLabels()
+      ldvBlankNodes(iri)
     }).catch(function (error) {
       console.error(error)
+    })
+  }
+
+  const renderBlankNodeSub = (bnode, json) => {
+    return new Promise((resolve, reject) => {
+      Promise.all([
+	embeddedGraph({} /*'vocab'*/),
+	embeddedGraph(json /*'data'*/)
+      ]).then((r) => {
+	const bg = r[1]
+	resolve(renderTables(bnode, bg, r[0], titlePredicates))
+      }).catch((err) => {
+	console.error(err)
+      })
     })
   }
 
@@ -409,5 +457,6 @@
   }
 
   window.renderMoreResults = renderMoreResults
+  window.renderBlankNodeSub = renderBlankNodeSub
   window.renderLd = renderLd
 })()

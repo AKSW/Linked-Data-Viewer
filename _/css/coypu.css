@@ -46,7 +46,9 @@ a:hover, a:focus, button:hover.link, button:focus.link { color: #ed8b00; }
 
 a:not([class]):hover, a:not([class]):focus, button:hover.link, button:focus.link { text-decoration-color: rgba(237, 139, 0, 0.45); }
 
-h1, h2, h3, h4, h5, h6, .section-heading { font-family: "Red Hat Display", sans-serif; font-weight: 900; }
+h1, h2, h3, h4, h5, h6, .section-heading { font-family: "Red Hat Display", sans-serif; font-weight: bolder; }
+
+b { font-weight: bolder; }
 
 tt, code { font-size: 13.6px; }
 

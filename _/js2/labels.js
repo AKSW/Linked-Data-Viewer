@@ -38,7 +38,7 @@
 	if (showLabels)
 	  labelBox.innerHTML = `<em>${label[e.href]}` +
 	    (lang[e.href] ?
-	     `&nbsp;<span style="font-weight: 300; font-size: smaller"><span>@</span><span style="font-size: smaller">${lang[e.href]}</span></span>` :
+	     `&nbsp;<span style="font-weight: lighter; font-size: smaller"><span>@</span><span style="font-size: smaller">${lang[e.href]}</span></span>` :
 	     '') + `</em>`
 	else
 	  e.title = label[e.href] + (lang[e.href] ? ' @' + lang[e.href] : '')
@@ -48,7 +48,7 @@
 
   const getLdvLabelsForUris = (uris) => {
     const infer = ldvConfig.infer
-    const values = uris.map(e => `<${e}>`).join(' ')
+    const values = uris.map(e => `<${ e.startsWith('bnode://') ? '_:' + e.slice(8) : e }>`).join(' ')
     const query = ldvConfig.fetchLabelsQuery(values, getLdvLabelLang(), infer)
 
     return fetchLabelsQuery(query)
