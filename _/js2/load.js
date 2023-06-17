@@ -173,7 +173,10 @@
     else
       resourceIri = ldvConfig.datasetBase + document.URL.slice(window.location.origin.length)
 
-    loadResource(resourceIri)
+    if (ldvConfig.endpointUrl.slice(0, 1) !== '@')
+      loadResource(resourceIri)
+    else
+      alert("You need to configure ENDPOINT_URL in your config")
 
     const switchInfer = document.getElementById('inferswitch')
     switchInfer.innerHTML =

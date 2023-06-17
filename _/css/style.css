@@ -2,7 +2,7 @@ html { font-size: 14px !important; scroll-behavior: smooth; }
 
 @media (min-width: 31.25rem) { html { font-size: 16px !important; } }
 
-body { font-family: "Red Hat Display", sans-serif; font-size: inherit; line-height: 1.4; color: #5c5962; background-color: #fff; overflow-wrap: break-word; padding: 1em; }
+body { font-size: inherit; line-height: 1.4; color: #5c5962; background-color: #fff; overflow-wrap: break-word; padding: 1em; }
 
 @media (min-width: 31.25rem) { body { padding: 1em 2em; } }
 
@@ -40,13 +40,13 @@ a:not([class]), button.link { text-decoration: underline; text-decoration-color:
 
 a:not([class]):hover, button:hover.link { text-decoration-color: rgba(0, 92, 131, 0.45); }
 
-tt, code { font-family: "Red Hat Mono", monospace; font-size: 0.75em; line-height: 1.4; }
+tt, code { font-size: 0.75em; line-height: 1.4; }
 
 a:hover, a:focus, button:hover.link, button:focus.link { color: #ed8b00; }
 
 a:not([class]):hover, a:not([class]):focus, button:hover.link, button:focus.link { text-decoration-color: rgba(237, 139, 0, 0.45); }
 
-h1, h2, h3, h4, h5, h6, .section-heading { font-family: "Red Hat Display", sans-serif; font-weight: bolder; }
+h1, h2, h3, h4, h5, h6, .section-heading { font-weight: bolder; }
 
 b { font-weight: bolder; }
 

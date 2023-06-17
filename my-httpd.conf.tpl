@@ -28,7 +28,7 @@ LoadModule rewrite_module modules/mod_rewrite.so
 User www-data
 Group www-data
 </IfModule>
-ServerAdmin admin@coypu.org
+ServerAdmin admin@localhost
 <Directory />
     AllowOverride none
     Require all denied
@@ -43,7 +43,8 @@ DocumentRoot "/usr/local/apache2/htdocs"
 
     RewriteEngine On
     RewriteCond "%{HTTP_ACCEPT}" !text/html
-    RewriteRule .+ "https://skynet.coypu.org/coypu-internal?query=describe<https://%{SERVER_NAME}/$0>" 
+#    RewriteRule .+ "@ENDPOINT_URL@?query=describe<https://%{SERVER_NAME}/$0>" 
+    RewriteRule .+ "@ENDPOINT_URL@?query=describe<@IRI_SCHEME@://%{SERVER_NAME}@_IRI_PORT@/$0>"
 
 </Directory>
 <Directory "/usr/local/apache2/htdocs/_">
