@@ -1,15 +1,15 @@
 (() => {
   const ldvConfig = {
-    endpointUrl: 'https://skynet.coypu.org/coypu-internal',
+    endpointUrl: '@ENDPOINT_URL@',
     endpointOptions: {
       mode: 'cors',
       credentials: 'include',
       method: 'POST',
     },
     datasetBase: window.location.origin,
-    exploreUrl: 'https://explore.skynet.coypu.org/coypu-internal',
+    exploreUrl: '@EXPLORE_URL@',
     labelLang: 'en',
-    labelLangChoice: ['en', 'de', 'fr'],
+    labelLangChoice: ['en', 'de', 'nl', 'fr'],
     infer: false,
     askQuery: iri => `ASK {
  {
