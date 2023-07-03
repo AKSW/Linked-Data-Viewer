@@ -154,6 +154,9 @@
       same = parsed.hostname === globals.etld1 || parsed.hostname.endsWith(`.${globals.etld1}`)
     }
 
+    if (iri === label)
+      label = `<span class="ldv-label">${label}</span>`
+
     return `<a href="${iri}" title="${iri}"` +
       (loadMore ? loadMore : ' onclick="return ldvNavigate(this,event)"') +
       (navigate || same ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
@@ -254,7 +257,7 @@
   const renderBlankNodeLink = (bnodeId) => {
     const num = bnodeMap(bnodeId, true)
 
-    return `<a style="--bnum:${num}" href="${bnodeId}" onclick="return ldvNavigate(this,event)">_:b${num}</a>`
+    return `<a style="--bnum:${num}" href="${bnodeId}" onclick="return ldvNavigate(this,event)"><span class="ldv-label">_:b${num}</span></a>`
   }
 
   const renderNode = (node, label) => {
