@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderBlankNodeSub, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveBnodes, ldvConfig */
+/* global jsonld, makeMap, renderLd, renderBlankNodeSub, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveBnodes, ldvQueries, ldvConfig */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -30,14 +30,7 @@
 
   const findGeo = (iri) => {
     const infer = ldvConfig.infer
-    const geoQuery = `CONSTRUCT {
-  <${iri}> <${pGeoAsWKT}> ?wktLiteral
-} WHERE {
-  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
-  <${iri}> <${pGeoAsWKT}> ?wktLiteral
-  ${ infer ? '}' : '' }
-}
-`
+    const geoQuery = ldvQueries.geoQuery(iri, infer)
     fetchJsonLd(geoQuery)
       .then((json) => findMap(iri, json))
   }
@@ -68,8 +61,8 @@
 
   const loadResource = (iri) => {
     const infer = ldvConfig.infer
-    const askQuery = ldvConfig.askQuery(iri)
-    const describeQuery = ldvConfig.describeQuery(iri, infer)
+    const askQuery = ldvQueries.askQuery(iri)
+    const describeQuery = ldvQueries.describeQuery(iri, infer)
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     fetchPlain(askQuery)
       .then((text) => {
@@ -89,8 +82,8 @@
 
   const ldvLoadSubResource = (iri) => {
     const infer = ldvConfig.infer
-    const askQuery = ldvConfig.askQuery(iri)
-    const describeQuery = ldvConfig.describeQuery(iri, infer)
+    const askQuery = ldvQueries.askQuery(iri)
+    const describeQuery = ldvQueries.describeQuery(iri, infer)
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     return new Promise((resolve, reject) => {
       fetchPlain(askQuery)
@@ -229,8 +222,8 @@
     const p = reverse ? 'urn:x-arq:reverse:' + property.href : property.href
 
     const loadMoreQuery = reverse ?
-	  ldvConfig.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1, infer) :
-	  ldvConfig.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1, infer)
+	  ldvQueries.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1, infer) :
+	  ldvQueries.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1, infer)
     fetchJsonLd(loadMoreQuery)
       .then((json) => {
 	const graph = JSON.parse(document.getElementById('data').innerHTML)

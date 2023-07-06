@@ -17,6 +17,7 @@
       return
 
     const showLabels = isLdvShowLabels()
+    const lang = getLdvLabelLang()
 
     getLdvLabelsForUris(uris).then((json) => {
       const label = {}
@@ -49,7 +50,7 @@
   const getLdvLabelsForUris = (uris) => {
     const infer = ldvConfig.infer
     const values = uris.map(e => `<${ e.startsWith('bnode://') ? '_:' + e.slice(8) : e }>`).join(' ')
-    const query = ldvConfig.fetchLabelsQuery(values, getLdvLabelLang(), infer)
+    const query = ldvQueries.fetchLabelsQuery(values, lang, infer)
 
     return fetchLabelsQuery(query)
   }

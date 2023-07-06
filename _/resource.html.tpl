@@ -16,12 +16,13 @@
   <script src="https://unpkg.com/wellknown@0.5.0/wellknown.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-  <script src="/_/js2/config.js?g3"></script>
-  <script src="/_/js2/labels.js?g2"></script>
-  <script src="/_/js2/bnodes.js?g3"></script>
-  <script src="/_/js2/render-ld.js?g6"></script>
+  <script src="/_/js2/config.js?g4"></script>
+  <script src="/_/js2/queries.js?g1"></script>
+  <script src="/_/js2/labels.js?g3"></script>
+  <script src="/_/js2/bnodes.js?g4"></script>
+  <script src="/_/js2/render-ld.js?g7"></script>
   <script src="/_/js2/map2.js?g1"></script>
-  <script src="/_/js2/load.js?g3"></script>
+  <script src="/_/js2/load.js?g4"></script>
 
 </head>
 <body>
