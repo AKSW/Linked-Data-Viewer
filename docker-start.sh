@@ -1,13 +1,16 @@
 #!/bin/sh
 set -e
 
+c=./my-
 d=.
 if [ ! -d ./_ ]; then
+    c=/usr/local/apache2/conf/
     d=/usr/local/apache2/htdocs
 fi
 
+httpd_conf=${c}httpd.conf
 js_conf=$d/_/js2/config.js
-httpd_conf=/usr/local/apache2/conf/httpd.conf
+res_html=$d/_/resource.html
 
 if [ -z ${IRI_SCHEME+x} ]; then
     export IRI_SCHEME='%{REQUEST_SCHEME}'
@@ -21,11 +24,11 @@ else
     export _IRI_PORT=":$IRI_PORT"
 fi
 
-for tpl in "$js_conf" "$httpd_conf"; do
-    perl -p -e 's|@(\w+)@|$ENV{$1}//$&|ge' "$tpl".tpl > "$tpl"
+for src in "$js_conf" "$httpd_conf"; do
+    perl -p -e 's|@(\w+)@|$ENV{$1}//$&|ge' "$src".tpl > "$src"
 done
 
-perl -i -p -e 's|"/_/js2/config\.js\?\K[^"]+|'"$(openssl dgst -binary "$js_conf" | basenc --base64url)"'|' $d/_/resource.html
+perl -p -e 's|"/_/js2/config\.js\?\K[^"]+|'"$(openssl dgst -binary "$js_conf" | basenc --base64url)"'|' "$res_html".tpl > "$res_html"
 
 echo "
 ENDPOINT_URL = ${ENDPOINT_URL}
@@ -34,4 +37,8 @@ IRI_SCHEME   = ${IRI_SCHEME}
 IRI_PORT     = ${_IRI_PORT#:}
 "
 
-exec httpd-foreground
+if [ -f /.dockerenv ]; then
+    exec httpd-foreground
+else
+    docker compose up "$@"
+fi
