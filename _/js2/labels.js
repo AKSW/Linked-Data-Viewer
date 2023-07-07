@@ -1,7 +1,9 @@
-/* global ldvConfig */
+/* global renderTitleAgain, ldvQueries, ldvConfig */
 
 (() => {
-  const fetchLabelsQuery = (query) => {
+  const labels = { '': {} }
+
+  const fetchLabelsJson = (query) => {
     return fetch(ldvConfig.endpointUrl, {
       ...ldvConfig.endpointOptions,
       headers: {
@@ -19,40 +21,62 @@
     const showLabels = isLdvShowLabels()
     const lang = getLdvLabelLang()
 
-    getLdvLabelsForUris(uris).then((json) => {
-      const label = {}
-      const lang = {}
-
-      json.forEach(e => {
-	label[e.uri] = e.label
-	lang[e.uri] = e.lang
-      })
-
+    getLdvLabelsForUris(uris, lang).then(() => {
       links.forEach(e => {
-	if (!label[e.href])
-	  return
-
 	const labelBox = e.querySelector('.ldv-label')
 	if (!labelBox)
 	  return
 
+	if (!e.classList.contains('isLabelled')) {
+	  e.classList.add('isLabelled')
+	  labels[''][e.href] = labelBox.innerHTML
+	} else {
+	  e.removeAttribute('title')
+	  labelBox.innerHTML = labels[''][e.href]
+	}
+
+	if (!labels[lang][e.href] || !('label' in labels[lang][e.href])) {
+	  e.classList.remove('isLabelled')
+	  return
+	}
+
+	const label = labels[lang][e.href].label
+	const llang = labels[lang][e.href].lang
+
 	if (showLabels)
-	  labelBox.innerHTML = `<em>${label[e.href]}` +
-	    (lang[e.href] ?
-	     `&nbsp;<span style="font-weight: lighter; font-size: smaller"><span>@</span><span style="font-size: smaller">${lang[e.href]}</span></span>` :
+	  labelBox.innerHTML = `<em>${label}` +
+	    (llang ?
+	     `&nbsp;<span style="font-weight: lighter; font-size: smaller"><span>@</span><span style="font-size: smaller">${llang}</span></span>` :
 	     '') + `</em>`
 	else
-	  e.title = label[e.href] + (lang[e.href] ? ' @' + lang[e.href] : '')
+	  e.title = label + (llang ? ' @' + llang : '')
       })
     })
   }
 
-  const getLdvLabelsForUris = (uris) => {
+  const getLdvLabelsForUris = (uris, lang) => {
     const infer = ldvConfig.infer
+
+    labels[lang] ||= {}
+    const newUris = Array.from(new Set(Array.from(uris).filter(e => !(e in labels[lang]))))
+    newUris.sort()
+
+    if (!newUris.length)
+      return Promise.resolve([])
+
     const values = uris.map(e => `<${ e.startsWith('bnode://') ? '_:' + e.slice(8) : e }>`).join(' ')
     const query = ldvQueries.fetchLabelsQuery(values, lang, infer)
 
-    return fetchLabelsQuery(query)
+    return fetchLabelsJson(query).then((json) => {
+      json.forEach(e => {
+	labels[lang][e.uri] = e
+      })
+    })
+  }
+
+  const getLdvLabelsOf = (iri) => {
+    const lang = getLdvLabelLang()
+    return getLdvLabelsForUris([iri], lang).then(() => labels[lang][iri])
   }
 
   const ldvAddLabels = () => {
@@ -90,12 +114,17 @@
        '')
   }
 
+  const redoLabels = () => {
+    renderTitleAgain()
+    ldvAddLabels()
+  }
+
   const ldvChangeLabelConfig = (elem) => {
     if (elem.checked)
       window.localStorage.removeItem('/ldv/loadlabels')
     else
       window.localStorage.setItem('/ldv/loadlabels', false)
-    window.location.reload()
+    redoLabels()
   }
 
   const ldvChangeLabelLanguage = (elem) => {
@@ -103,7 +132,7 @@
       window.localStorage.removeItem('/ldv/labellang')
     else
       window.localStorage.setItem('/ldv/labellang', elem.value)
-    window.location.reload()
+    redoLabels()
   }
 
   window.renderLdvLabelConfig = renderLdvLabelConfig
@@ -112,6 +141,5 @@
   window.ldvChangeLabelLanguage = ldvChangeLabelLanguage
   window.ldvChangeLabelConfig = ldvChangeLabelConfig
   window.ldvAddLabels = ldvAddLabels
-  window.ldvAddLabelsForUris = ldvAddLabelsForUris
-  window.getLdvLabelsForUris = getLdvLabelsForUris
+  window.getLdvLabelsOf = getLdvLabelsOf
 })()

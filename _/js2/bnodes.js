@@ -1,4 +1,4 @@
-/* global ldvLoadSubResource */
+/* global ldvLoadSubResource, ldvAddLabels */
 
 (() => {
   const globals = {}
@@ -21,7 +21,10 @@
 	  .filter(e => !(e in globals.resolved))
       ))
     bnodes.sort()
-    ldvResolveBnodes(bnodes, links)
+    if (!bnodes.length) // no more new blank nodes to resolve, fetch new labels
+      ldvAddLabels()
+    else
+      ldvResolveBnodes(bnodes, links)
   }
 
   const ldvResolveBnodes = (bnodes, links) => {
@@ -30,7 +33,7 @@
 
     const next = (bnodes, links) => {
       if (bnodes.length === 1)
-	ldvBlankNodes()
+	ldvBlankNodes() // all current nodes resolved, recurse looking for new blank nodes
       else
 	ldvResolveBnodes(bnodes.slice(1), links)
     }

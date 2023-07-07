@@ -101,76 +101,54 @@
     })
   }
 
-  const loadWindowResource = () => {
-    if (window.location.pathname.substring(0, 2) === '/_')
-      return
-
-    if (window.location.pathname.slice(0, 2) === '/*' && window.location.pathname.length > 2) {
-      let config = window.location.pathname.split('*')
-      let result = {}
-      config.shift()
-      config.forEach((e) => {
-	switch (e) {
-	case "infer1":
-	  window.localStorage.setItem('/ldv/infer', true)
-	  break
-	case "infer0":
-	  window.localStorage.removeItem('/ldv/infer')
-	  break
-	case "label1":
-	  window.localStorage.removeItem('/ldv/loadlabels')
-	  break
-	case "label0":
-	  window.localStorage.setItem('/ldv/loadlabels', false)
-	  break
-	case "":
-	  result.localMode = true
-	  break
-	default:
-	  if (e.slice(0, 4) === "lang") {
-	    const value = e.slice(4)
-	    if (value !== ldvConfig.labelLang && ldvConfig.labelLangChoice.includes(value))
-	      window.localStorage.setItem('/ldv/labellang', value)
-	    else
-	      window.localStorage.removeItem('/ldv/labellang')
-	  }
+  const doUrlConfig = () => {
+    let config = window.location.pathname.split('*')
+    let result = {}
+    config.shift()
+    config.forEach((e) => {
+      switch (e) {
+      case "infer1":
+	window.localStorage.setItem('/ldv/infer', true)
+	break
+      case "infer0":
+	window.localStorage.removeItem('/ldv/infer')
+	break
+      case "label1":
+	window.localStorage.removeItem('/ldv/loadlabels')
+	break
+      case "label0":
+	window.localStorage.setItem('/ldv/loadlabels', false)
+	break
+      case "":
+	result.localMode = true
+	break
+      default:
+	if (e.slice(0, 4) === "lang") {
+	  const value = e.slice(4)
+	  if (value !== ldvConfig.labelLang && ldvConfig.labelLangChoice.includes(value))
+	    window.localStorage.setItem('/ldv/labellang', value)
+	  else
+	    window.localStorage.removeItem('/ldv/labellang')
 	}
-      })
+      }
+    })
 
-      const origin = ldvConfig.datasetBase
-      const iri = window.location.search.substring(1) + window.location.hash
+    const origin = ldvConfig.datasetBase
+    const iri = window.location.search.substring(1) + window.location.hash
 
-      var navigate
+    var navigate
 
-      if (result.localMode)
-	navigate = '/*?' + iri
-      else if (iri.slice(0, origin.length) === origin)
-	navigate = iri.slice(origin.length)
-      else
-	navigate = '/?' + iri
-
-      window.location.replace(navigate)
-      return
-    }
-
-    var resourceIri
-
-    const infer = window.localStorage.getItem('/ldv/infer')
-    ldvConfig.infer = infer ? true : false
-
-    ldvConfig.localMode = (window.location.pathname === '/*')
-
-    if ((window.location.pathname === '/' || window.location.pathname === '/*') &&
-	window.location.search)
-      resourceIri = window.location.search.substring(1) + window.location.hash
+    if (result.localMode)
+      navigate = '/*?' + iri
+    else if (iri.slice(0, origin.length) === origin)
+      navigate = iri.slice(origin.length)
     else
-      resourceIri = ldvConfig.datasetBase + document.URL.slice(window.location.origin.length)
+      navigate = '/?' + iri
 
-    if (ldvConfig.endpointUrl.slice(0, 1) !== '@')
-      loadResource(resourceIri)
-    else
-      alert("You need to configure ENDPOINT_URL in your config")
+    window.location.replace(navigate)
+  }
 
+  const addUILinks = (resourceIri) => {
     const switchInfer = document.getElementById('inferswitch')
     switchInfer.innerHTML =
       `<input type="checkbox" onclick="ldvChangeInferConfig(this)" ` +
@@ -197,6 +175,34 @@
     const exploreLink = document.getElementById('explorelink')
     if (ldvConfig.exploreUrl.slice(0, 1) !== '@')
       exploreLink.innerHTML = `<a href="${ ldvConfig.exploreUrl }#r=${ resourceIri }" target="_blank">Explore</a>`
+  }
+
+  const loadWindowResource = () => {
+    if (window.location.pathname.substring(0, 2) === '/_') // internal files
+      return
+
+    if (window.location.pathname.slice(0, 2) === '/*' && window.location.pathname.length > 2) {
+      doUrlConfig()
+      return
+    }
+
+    var resourceIri
+
+    ldvConfig.infer = !! window.localStorage.getItem('/ldv/infer')
+    ldvConfig.localMode = (window.location.pathname === '/*')
+
+    if ((window.location.pathname === '/' || window.location.pathname === '/*') &&
+	window.location.search)
+      resourceIri = window.location.search.substring(1) + window.location.hash
+    else
+      resourceIri = ldvConfig.datasetBase + document.URL.slice(window.location.origin.length)
+
+    if (ldvConfig.endpointUrl.slice(0, 1) !== '@') {
+      loadResource(resourceIri)
+      addUILinks(resourceIri)
+    } else {
+      alert("You need to configure ENDPOINT_URL in your config")
+    }
   }
 
   const ldvChangeInferConfig = (elem) => {

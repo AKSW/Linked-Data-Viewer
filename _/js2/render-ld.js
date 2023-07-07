@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // based on https://github.com/zazuko/trifid-renderer-simple
 
-/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsForUris */
+/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsOf */
 
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
@@ -341,17 +341,7 @@
     }).join('')
   }
 
-  const embeddedGraph = (json /*elementId*/) => {
-    /*
-    var element = document.getElementById(elementId)
-
-    if (!element) {
-      return Promise.resolve({})
-    }
-
-    var json = JSON.parse(element.innerHTML)
-    */
-
+  const embeddedGraph = (json) => {
     return jsonld.promises.flatten(json, {}).then(function (flat) {
       return jsonld.promises.expand(flat).then(function (json) {
 	// if data contains quads, merge them all together
@@ -366,41 +356,54 @@
     })
   }
 
+  const renderTitleWithLang = (iri, graph) => {
+    const title = renderTitle(iri, graph, titlePredicates)
+    if (title !== '') {
+      render('title', title)
+    } else {
+      getLdvLabelsOf(iri).then((e) => {
+	if (e)
+	  render('title', 'label' in e ? `<h1>${e.label}</h1>` : ``)
+      })
+    }
+  }
+
+  const renderTitleAgain = () => {
+    const json = JSON.parse(document.getElementById('data').innerHTML)
+    embeddedGraph(json).then(graph => {
+      const iri = json['@id']
+      renderTitleWithLang(iri, graph)
+    })
+  }
+
+  const findETLDWithCookie = () => {
+    var i = 0,
+	domain = document.domain,
+	p = domain.split('.'),
+	s = '_findETLD1_' + (new Date()).getTime()
+
+    while (i < (p.length - 1) && document.cookie.indexOf(s + '=' + s) == -1) {
+      domain = p.slice(-1 - (++i)).join('.')
+      document.cookie = `${s}=${s};domain=${domain};`
+    }
+    document.cookie = `${s}=;expires=${(new Date(0)).toUTCString()};domain=${domain};`
+    return domain
+  }
+
   const renderLd = (iri, datasetBase, localMode, json) => {
     globals.prefixMap = json['@context']
     Promise.all([
       embeddedGraph({} /*'vocab'*/),
       embeddedGraph(json /*'data'*/)
-    ]).then(function (results) {
+    ]).then(results => {
       const vocab = results[0]
       const graph = results[1]
 
       globals.datasetBase = datasetBase
       globals.localMode = localMode
-      globals.etld1 = (() => {
-	var i = 0,
-	    domain = document.domain,
-	    p = domain.split('.'),
-	    s = '_findETLD1_' + (new Date()).getTime()
+      globals.etld1 = findETLDWithCookie()
 
-	while (i < (p.length - 1) && document.cookie.indexOf(s + '=' + s) == -1) {
-	  domain = p.slice(-1 - (++i)).join('.')
-	  document.cookie = `${s}=${s};domain=${domain};`
-	}
-	document.cookie = `${s}=;expires=${(new Date(0)).toUTCString()};domain=${domain};`
-	return domain
-      })()
-
-
-      const title = renderTitle(iri, graph, titlePredicates)
-      if (title !== '')
-	render('title', title)
-      else
-	getLdvLabelsForUris([iri]).then((json) => {
-	  const e = json.find(e => e.uri === iri)
-	  if (e)
-	    render('title', `<h1>${e.label}</h1>`)
-	})
+      renderTitleWithLang(iri, graph)
       render('subtitle', renderSticky(iri, graph))
       render('graph', renderTables(iri, graph, vocab, titlePredicates))
 
@@ -461,5 +464,6 @@
 
   window.renderMoreResults = renderMoreResults
   window.renderBlankNodeSub = renderBlankNodeSub
+  window.renderTitleAgain = renderTitleAgain
   window.renderLd = renderLd
 })()
