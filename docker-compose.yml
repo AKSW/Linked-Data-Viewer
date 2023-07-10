@@ -7,7 +7,7 @@ services:
     volumes:
       - ./my-httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./root:/usr/local/apache2/htdocs
-      - ./_:/usr/local/apache2/htdocs/_
+      - ./_:/_
     ports:
       - 3084:80
     restart: unless-stopped

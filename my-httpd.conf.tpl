@@ -20,6 +20,7 @@ LoadModule version_module modules/mod_version.so
 LoadModule unixd_module modules/mod_unixd.so
 LoadModule status_module modules/mod_status.so
 #LoadModule autoindex_module modules/mod_autoindex.so
+LoadModule alias_module modules/mod_alias.so
 LoadModule dir_module modules/mod_dir.so
 #LoadModule proxy_module modules/mod_proxy.so
 #ProxyRequests Off
@@ -36,7 +37,7 @@ ServerAdmin admin@localhost
 DocumentRoot "/usr/local/apache2/htdocs"
 <Directory "/usr/local/apache2/htdocs">
     Options Indexes FollowSymLinks
-    AllowOverride All
+#    AllowOverride All
     Require all granted
 
         FallbackResource /_/resource.html
@@ -47,9 +48,9 @@ DocumentRoot "/usr/local/apache2/htdocs"
     RewriteRule .+ "@ENDPOINT_URL@?query=describe<@IRI_SCHEME@://%{SERVER_NAME}@_IRI_PORT@/$0>"
 
 </Directory>
-<Directory "/usr/local/apache2/htdocs/_">
-    Options Indexes FollowSymLinks
-    AllowOverride All
+<Directory "/_">
+#    Options Indexes FollowSymLinks
+#    AllowOverride All
     Require all granted
     FallbackResource disabled
     RewriteEngine Off
@@ -76,7 +77,8 @@ LogLevel warn
     CustomLog /proc/self/fd/1 common
 </IfModule>
 <IfModule alias_module>
-    ScriptAlias /cgi-bin/ "/usr/local/apache2/cgi-bin/"
+    Alias /_ "/_"
+#    ScriptAlias /cgi-bin/ "/usr/local/apache2/cgi-bin/"
 </IfModule>
 <Directory "/usr/local/apache2/cgi-bin">
     AllowOverride None

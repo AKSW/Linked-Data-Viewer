@@ -5,7 +5,7 @@ c=./my-
 d=.
 if [ ! -d ./_ ]; then
     c=/usr/local/apache2/conf/
-    d=/usr/local/apache2/htdocs
+    d=
 fi
 
 httpd_conf=${c}httpd.conf
@@ -28,7 +28,7 @@ for src in "$js_conf" "$httpd_conf"; do
     perl -p -e 's|@(\w+)@|$ENV{$1}//$&|ge' "$src".tpl > "$src"
 done
 
-perl -p -e 's|"/_/js2/config\.js\?\K[^"]+|'"$(openssl dgst -binary "$js_conf" | basenc --base64url)"'|' "$res_html".tpl > "$res_html"
+perl -i -p -e 's|"(/_/(?:css\|js2)/[\w-]+\.\w+)\?\K[^"]+|`openssl dgst -binary "'"$d/"'$1" \| basenc --base64url --wrap=0`|ge' "$d"/_/*.html
 
 echo "
 ENDPOINT_URL = ${ENDPOINT_URL}
