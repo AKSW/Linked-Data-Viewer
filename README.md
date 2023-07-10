@@ -27,9 +27,15 @@ services:
   ldv:
     image: aksw/ldv
     init: true
+    ports:
+     - 8001:80
     environment:
      - ENDPOINT_URL=http://localhost:3030/geods
      - EXPLORE_URL=http://localhost:8002/
 ```
+
+Now visit http://localhost:8001/*?http://example.org/country/DEU (an existing IRI in your knowledge graph)
+
+## Screenshot
 
 ![Screenshot](https://github.com/AKSW/Linked-Data-Viewer/assets/10867832/b00c17e8-1a2e-4ca9-82df-3be28727da17)
