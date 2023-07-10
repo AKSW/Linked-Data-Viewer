@@ -26,7 +26,7 @@ Or in docker compose:
 services:
   ldv:
     image: aksw/ldv
-	init: true
+    init: true
     environment:
      - ENDPOINT_URL=http://localhost:3030/geods
      - EXPLORE_URL=http://localhost:8002/
