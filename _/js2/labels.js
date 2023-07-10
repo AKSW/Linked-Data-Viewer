@@ -141,5 +141,6 @@
   window.ldvChangeLabelLanguage = ldvChangeLabelLanguage
   window.ldvChangeLabelConfig = ldvChangeLabelConfig
   window.ldvAddLabels = ldvAddLabels
+  window.ldvAddLabelsForUris = ldvAddLabelsForUris
   window.getLdvLabelsOf = getLdvLabelsOf
 })()
