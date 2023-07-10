@@ -148,6 +148,18 @@
     window.location.replace(navigate)
   }
 
+  const ldvUpdateConfigLink = () => {
+    const configLink = document.getElementById('configlink')
+    const link = configLink.querySelector('a[href]')
+    let parsed = new URL(link.href)
+    parsed.pathname = `/` +
+      `*infer${ ldvConfig.infer ? 1 : 0 }` +
+      `*label${ isLdvShowLabels() ? 1 : 0 }` +
+      `*lang${ getLdvLabelLang() }` +
+      (ldvConfig.localMode ? '*' : '')
+    link.href = parsed
+  }
+
   const addUILinks = (resourceIri) => {
     const switchInfer = document.getElementById('inferswitch')
     switchInfer.innerHTML =
@@ -288,4 +300,5 @@
   window.ldvLoadMore = ldvLoadMore
   window.ldvLoadSubResource = ldvLoadSubResource
   window.ldvChangeInferConfig = ldvChangeInferConfig
+  window.ldvUpdateConfigLink = ldvUpdateConfigLink
 })()

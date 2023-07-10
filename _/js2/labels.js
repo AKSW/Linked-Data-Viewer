@@ -1,4 +1,4 @@
-/* global renderTitleAgain, ldvQueries, ldvConfig */
+/* global renderTitleAgain, ldvUpdateConfigLink, ldvQueries, ldvConfig */
 
 (() => {
   const labels = { '': {} }
@@ -115,6 +115,7 @@
   }
 
   const redoLabels = () => {
+    ldvUpdateConfigLink()
     renderTitleAgain()
     ldvAddLabels()
   }
