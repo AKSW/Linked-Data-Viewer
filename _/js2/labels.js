@@ -1,17 +1,11 @@
-/* global renderTitleAgain, ldvUpdateConfigLink, ldvQueries, ldvConfig */
+/* global renderTitleAgain, ldvUpdateConfigLink, ldvQueries, ldvConfig, ldvFetchTypeQuery */
 
 (() => {
   const labels = { '': {} }
 
   const fetchLabelsJson = (query) => {
-    return fetch(ldvConfig.endpointUrl, {
-      ...ldvConfig.endpointOptions,
-      headers: {
-	Accept: 'application/json',
-	'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'query=' + encodeURIComponent(query)
-    }).then((response) => response.json())
+    return ldvFetchTypeQuery('application/json', query)
+      .then((response) => response.json())
   }
 
   const ldvAddLabelsForUris = (uris, links) => {

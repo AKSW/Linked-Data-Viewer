@@ -70,6 +70,10 @@ tr:not(.rdf-inverse) + tr.rdf-inverse, tr.rdf-inverse + tr:not(.rdf-inverse) {
     background-color: #eaeaea;
 }
 
+.popup .table {
+    margin-bottom: 0;
+}
+
 header li > span + span::before {
     content: "\00a0|\00a0";
     display: inline-block;

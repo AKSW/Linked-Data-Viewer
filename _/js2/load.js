@@ -6,26 +6,30 @@
   const pGeoHasGeometry = xGeo + "hasGeometry"
   const tGeoWktLiteral = xGeo + "wktLiteral"
 
-  const fetchPlain = (query) => {
+  const ldvFetchTypeQuery = (type, query) => {
     return fetch(ldvConfig.endpointUrl, {
       ...ldvConfig.endpointOptions,
       headers: {
-	Accept: 'text/plain',
+	Accept: type,
 	'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: 'query=' + encodeURIComponent(query)
-    }).then((response) => response.status == 401 ? window.location.replace('/_/unauthorized') : response.text())
+    })
+  }
+
+  const fetchPlain = (query) => {
+    return ldvFetchTypeQuery('text/plain', query)
+      .then((response) => response.status == 401 ? window.location.replace('/_/unauthorized') : response.text())
   }
 
   const fetchJsonLd = (query) => {
-    return fetch(ldvConfig.endpointUrl, {
-      ...ldvConfig.endpointOptions,
-      headers: {
-	Accept: 'application/ld+json',
-	'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'query=' + encodeURIComponent(query)
-    }).then((response) => response.json())
+    return ldvFetchTypeQuery('application/ld+json', query)
+      .then((response) => response.json())
+  }
+
+  const fetchJson = (query) => {
+    return ldvFetchTypeQuery('application/json', query)
+      .then((response) => response.json())
   }
 
   const findGeo = (iri) => {
@@ -262,10 +266,11 @@
 
   const loadInline = (iri, elem) => {
     const e = document.getElementById(iri)
-    if (e)
+    if (e) {
       e.parentElement.parentElement.scrollIntoView()
-    else
+    } else {
       ldvResolveBnodes([iri], [elem])
+    }
   }
 
   const ldvNavigate = (elem, event) => {
@@ -284,21 +289,123 @@
     if (!navigate && !event.altKey)
       return !false
 
-    if (event.ctrlKey)
+    if (event.ctrlKey) {
       window.open(navigate, '_blank')
-    else if (event.altKey)
+    } else if (event.altKey) {
+      const expandButton = elem.nextElementSibling
       loadInline(iri, elem)
-    else
+      if (expandButton && expandButton.textContent === '[+]')
+	expandButton.textContent = '[\u2212]'
+    } else {
       window.location = navigate
+    }
     return !true
+  }
+
+  const ldvLoadInlinePlus = (elem) => {
+    const target = elem.previousElementSibling
+    if (target === null)
+      return
+
+    if (target.href) {
+      loadInline(target.href, target)
+      elem.textContent = '[\u2212]'
+    } else {
+      const graph = target.querySelector(':scope > div > table[id]')
+      const node = target.querySelector(':scope > div > a[href]')
+      if (graph && node) {
+	elem.previousElementSibling.replaceWith(node)
+	elem.textContent = '[+]'
+      }
+    }
+  }
+
+  const ldvLookupGraph = (elem) => {
+    const s = `<${elem.closest('table[id]').id}>`
+
+    const pParent = elem.closest('tr')
+    const pLink = pParent.querySelector('.table-predicate a[href]')
+    if (pLink === null)
+      return
+
+    const inverse = pParent.classList.contains('rdf-inverse')
+    const p = `<${pLink.getAttribute('href')}>`
+
+    let o
+    const oParent = elem.closest('div[style*=max-height]')
+    const opfec = oParent.firstElementChild
+    if (opfec instanceof HTMLAnchorElement) {
+      o = `<${opfec.getAttribute('href')}>`
+    } else if (opfec instanceof HTMLDivElement) { // expanded entity
+      o = `<${opfec.querySelector(':scope > div > a[href]').getAttribute('href')}>`
+    } else {
+      const text = oParent.querySelector(':scope > span > span:nth-of-type(1)').firstChild.nodeValue
+      const escaped = text
+	  .replace(/\\/g, '\\\\')
+	  .replace(/\t/g, '\\t')
+	  .replace(/\n/g, '\\n')
+	  .replace(/\r/g, '\\r')
+	  .replace(/\"/g, '\\"')
+      o = `"${escaped}"`
+      const langQuery = oParent.querySelector(':scope > span > span:nth-of-type(2)')
+      if (langQuery !== null && langQuery.firstElementChild !== null) {
+	const typeQuery = langQuery.querySelector(':scope > span > a[href]')
+	if (typeQuery !== null) {
+	  o += `^^<${typeQuery.getAttribute('href')}>`
+	} else if (langQuery.firstChild.nodeValue === '@') {
+	  o += `@${langQuery.firstElementChild.firstChild.nodeValue}`
+	}
+      }
+    }
+    const pattern = inverse ? `${o} ${p} ${s}` : `${s} ${p} ${o}`
+    fetchJsonLd(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        CONSTRUCT {
+          ?id <urn:x-meta:originatingGraph> ?graph .
+        } WHERE {
+          BIND(<urn:x-meta:source-graph-lookup> as ?id) .
+          VALUES (?s ?p ?o) { ( ${pattern} ) }
+          GRAPH ?graph { ?s ?p ?o }
+        }`)
+      .then((json) => renderBlankNodeSub('urn:x-meta:source-graph-lookup', json))
+      .then((res) => {
+	const popup = document.getElementById('graphLookupPopup')
+	const closePopup = (e) => {
+	  // in link or popup
+	  if (e && (e.target.closest('a') || e.target.closest('*[onclick]') || e.target.closest(`#${popup.id}`)))
+	    return
+
+	  popup.style.display = 'none'
+	  document.body.removeEventListener('click', closePopup, true)
+	}
+	popup.innerHTML = res ? res : '?'
+	popup.style.fontSize = '80%'
+	popup.style.border = '1px solid'
+	popup.style.padding = '5px'
+	popup.style.background = 'rgba(255,255,255,0.7)'
+	popup.style.display = 'inherit'
+	popup.style.position = 'absolute'
+	const root = document.firstElementChild
+	const er = elem.getBoundingClientRect()
+	popup.style.bottom = (root.clientHeight - er.bottom + er.height / 2 - window.scrollY) + 'px'
+	popup.style.right = (root.clientWidth - er.right + er.width / 2 - window.scrollX) + 'px'
+	popup.style.maxHeight = Math.min(popup.getBoundingClientRect().bottom, root.clientHeight) + 'px'
+	popup.style.maxWidth = Math.min(popup.getBoundingClientRect().right, root.clientWidth) + 'px'
+	popup.style.overflow = 'auto'
+	//popup.style.resize = 'both'
+	popup.style.zIndex = 1000 // for leaflet
+	document.body.addEventListener('click', closePopup, true)
+      })
   }
 
   window.addEventListener('hashchange', (event) => window.location.reload())
   window.addEventListener('DOMContentLoaded', (event) => loadWindowResource())
 
+  window.ldvFetchTypeQuery = ldvFetchTypeQuery
   window.ldvNavigate = ldvNavigate
   window.ldvLoadMore = ldvLoadMore
   window.ldvLoadSubResource = ldvLoadSubResource
   window.ldvChangeInferConfig = ldvChangeInferConfig
   window.ldvUpdateConfigLink = ldvUpdateConfigLink
+  window.ldvLookupGraph = ldvLookupGraph
+  window.ldvLoadInlinePlus = ldvLoadInlinePlus
 })()

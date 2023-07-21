@@ -21,19 +21,17 @@
     return hash.charAt(0) + hash.charAt(3) + hash.charAt(1) + hash.charAt(4) + hash.charAt(2) + hash.charAt(5)
   }
 
-  const compareShortestValue = (map) => (a, b) => {
-    if (map[a].length < map[b].length)
-      return -1
-    if (map[b].length < map[a].length)
-      return 1
-    if (map[a] === map[b])
-      return (a < b) ? -1 : 1
-    if (map[a] < map[b])
-      return -1
-    if (map[b] < map[a])
-      return 1
-    return 0
-  }
+  const compareShortestValue = (map) => (a, b) =>
+	map[a].length < map[b].length
+	? -1 :
+	map[b].length < map[a].length
+	? 1 :
+	map[a] === map[b]
+	? (a < b) ? -1 : 1 :
+	map[a] < map[b]
+	? -1 :
+	map[b] < map[a]
+	? 1 : 0
 
   const iriLabel = (iri) => {
     const parts = termRegEx.exec(iri)
@@ -150,7 +148,7 @@
       navigate = iri.slice(origin.length)
 
     if (!navigate && globals.etld1) {
-      let parsed = new URL(iri)
+      const parsed = new URL(iri)
       same = parsed.hostname === globals.etld1 || parsed.hostname.endsWith(`.${globals.etld1}`)
     }
 
@@ -160,7 +158,8 @@
     return `<a href="${iri}" title="${iri}"` +
       (loadMore ? loadMore : ' onclick="return ldvNavigate(this,event)"') +
       (navigate || same ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
-      `>${label}</a>`
+      `>${label}</a>` +
+      `<span style="text-align: right; padding-left: 1ex; font-size: smaller; cursor: pointer; opacity: 0.2" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.2" onclick="return ldvLoadInlinePlus(this)">[+]</span>`
   }
 
   const renderTitle = (myIri, graph, titlePredicates) => {
@@ -282,7 +281,7 @@
     return objects.map(function (object) {
       return '<div style="max-height: 23ex; overflow: auto; text-overflow: ellipsis">' +
 	renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') +
-	'</div>'
+	'<span style="float: right; font-size: smaller; opacity: 0.1; cursor: pointer" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.1" onclick="return ldvLookupGraph(this)">?g</span></div>'
     }).join('')
   }
 
