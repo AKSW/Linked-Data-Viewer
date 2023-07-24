@@ -5,6 +5,7 @@
     objInnerMaxHeightExpanded: '51ex',
     expandButtonText: '[+]',
     collapseButtonText: '[\u2212]',
+    sourceGraphPropId: 'urn:x-meta:originatingGraph',
   }
   window.ldvDef = ldvDef
 })()

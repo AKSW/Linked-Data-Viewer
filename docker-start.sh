@@ -24,6 +24,11 @@ else
     export _IRI_PORT=":$IRI_PORT"
 fi
 
+if [ ${GRAPH_LOOKUP+set} = set ] && [ "${GRAPH_LOOKUP}" != yes ] && [ "${GRAPH_LOOKUP}" != no ]; then
+    echo "GRAPH_LOOKUP is set to \`${GRAPH_LOOKUP}' but must be yes or no"
+    exit 1
+fi
+
 for src in "$js_conf" "$httpd_conf"; do
     perl -p -e 's|@(\w+)@|$ENV{$1}//$&|ge' "$src".tpl > "$src"
 done
@@ -33,6 +38,7 @@ perl -i -p -e 's|"(/_/(?:css\|js2)/[\w-]+\.\w+)\?\K[^"]+|`openssl dgst -binary "
 echo "
 ENDPOINT_URL = ${ENDPOINT_URL}
 EXPLORE_URL  = ${EXPLORE_URL}
+GRAPH_LOOKUP = ${GRAPH_LOOKUP-no}
 IRI_SCHEME   = ${IRI_SCHEME}
 IRI_PORT     = ${_IRI_PORT#:}
 "

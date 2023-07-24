@@ -1,3 +1,4 @@
+/* global ldvDef */
 (() => {
   const ldvQueries = {
     askQuery: iri => `ASK {
@@ -67,7 +68,7 @@
             GRAPH ?o {
               ?s_ a ?ox
             }
-          } bind(if(bound(?o),<urn:x-meta:originatingGraph>,coalesce()) AS ?p)
+          } bind(if(bound(?o),<${ldvDef.sourceGraphPropId}>,coalesce()) AS ?p)
         }
       }
       bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)

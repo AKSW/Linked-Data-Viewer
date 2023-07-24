@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderBlankNodeSub, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveBnodes, ldvQueries, ldvConfig, ldvDef */
+/* global jsonld, makeMap, renderLd, renderSubNode, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveSubNodes, ldvQueries, ldvConfig, ldvDef */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -95,7 +95,7 @@
 	  if (text.trim() === 'yes') {
 	    fetchJsonLd(describeQuery)
 	      .then((json) => {
-		renderBlankNodeSub(bIri, json)
+		renderSubNode(bIri, json)
 		  .then(resolve)
 	      })
 	  } else {
@@ -269,7 +269,7 @@
     if (e) {
       e.parentElement.parentElement.scrollIntoView()
     } else {
-      ldvResolveBnodes([iri], [elem])
+      ldvResolveSubNodes([iri], [elem])
     }
   }
 
@@ -316,7 +316,7 @@
       if (graph && node) {
 	elem.previousElementSibling.replaceWith(node)
 	elem.textContent = ldvDef.expandButtonText
-	// undo expansion steps done in bnodes.js:ldvResolveBnodes
+	// undo expansion steps done in bnodes.js:ldvResolveSubNodes
 	const p = elem.previousElementSibling.parentElement
 
 	if (p.style.maxHeight === ldvDef.objMaxHeightExpanded) {
@@ -364,15 +364,16 @@
       }
     }
     const pattern = inverse ? `${o} ${p} ${s}` : `${s} ${p} ${o}`
+    const lookupId = 'urn:x-meta:source-graph-lookup'
     fetchJsonLd(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         CONSTRUCT {
-          ?id <urn:x-meta:originatingGraph> ?graph .
+          ?id <${ldvDef.sourceGraphPropId}> ?graph .
         } WHERE {
-          BIND(<urn:x-meta:source-graph-lookup> as ?id) .
+          BIND(<${lookupId}> as ?id) .
           VALUES (?s ?p ?o) { ( ${pattern} ) }
           GRAPH ?graph { ?s ?p ?o }
         }`)
-      .then((json) => renderBlankNodeSub('urn:x-meta:source-graph-lookup', json))
+      .then((json) => renderSubNode(lookupId, json))
       .then((res) => {
 	const popup = document.getElementById('graphLookupPopup')
 	const closePopup = (e) => {

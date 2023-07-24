@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // based on https://github.com/zazuko/trifid-renderer-simple
 
-/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsOf, ldvDef */
+/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsOf, ldvConfig, ldvDef */
 
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
@@ -281,7 +281,8 @@
     return objects.map(function (object) {
       return `<div style="max-height: ${ldvDef.objMaxHeight}; overflow: auto; text-overflow: ellipsis">` +
 	renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') +
-	`<span style="float: right; font-size: smaller; opacity: 0.1; cursor: pointer" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.1" onclick="return ldvLookupGraph(this)">?g</span></div>`
+	(ldvConfig.graphLookup === 'yes' ?
+	 `<span style="float: right; font-size: smaller; opacity: 0.1; cursor: pointer" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.1" onclick="return ldvLookupGraph(this)">?g</span></div>` : '')
     }).join('')
   }
 
@@ -318,7 +319,7 @@
 
       return `<tr${isReverse ? ' class="rdf-inverse"' : ''}>` +
 	`<td class="table-predicate col-lg-4"${isReverse ? ' style="padding-left: 1.5em"': ''}>` +
-	(predicate === 'urn:x-meta:originatingGraph' ? '<b style="text-variant: small-caps">source graph</b>' :
+	(predicate === ldvDef.sourceGraphPropId ? '<b style="text-variant: small-caps">source graph</b>' :
 	 (isReverse ? "is " : "") +
 	 renderPredicate(predicate, predicateLabel(predicate, vocab)) +
 	 (isReverse ? " of" : "")) +
@@ -413,7 +414,7 @@
     })
   }
 
-  const renderBlankNodeSub = (bnode, json) => {
+  const renderSubNode = (bnode, json) => {
     return new Promise((resolve, reject) => {
       Promise.all([
 	embeddedGraph({} /*'vocab'*/),
@@ -462,7 +463,7 @@
   }
 
   window.renderMoreResults = renderMoreResults
-  window.renderBlankNodeSub = renderBlankNodeSub
+  window.renderSubNode = renderSubNode
   window.renderTitleAgain = renderTitleAgain
   window.renderLd = renderLd
 })()

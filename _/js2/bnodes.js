@@ -24,10 +24,10 @@
     if (!bnodes.length) // no more new blank nodes to resolve, fetch new labels
       ldvAddLabels()
     else
-      ldvResolveBnodes(bnodes, links, resolved)
+      ldvResolveSubNodes(bnodes, links, resolved)
   }
 
-  const ldvResolveBnodes = (bnodes, links, resolved) => {
+  const ldvResolveSubNodes = (bnodes, links, resolved) => {
     if (!bnodes.length)
       return
 
@@ -35,7 +35,7 @@
       if (bnodes.length === 1)
 	ldvBlankNodes(null, resolved) // all current nodes resolved, recurse looking for new blank nodes
       else
-	ldvResolveBnodes(bnodes.slice(1), links, resolved)
+	ldvResolveSubNodes(bnodes.slice(1), links, resolved)
     }
 
     resolved ||= {}
@@ -108,5 +108,5 @@
   }
 
   window.ldvBlankNodes = ldvBlankNodes
-  window.ldvResolveBnodes = ldvResolveBnodes
+  window.ldvResolveSubNodes = ldvResolveSubNodes
 })()

@@ -12,11 +12,19 @@ docker run --rm \
   aksw/ldv
 ```
 
+To enable searching for source graphs of a statement (when using named graphs):
+
+```sh
+... \
+  -e GRAPH_LOOKUP=yes \
+...
+```
+
 If you have an existing deployment of Ontodia Graph Explorer that you want to link to:
 
 ```sh
 ... \
-  -e EXPLORE_URL=http://localhost:8002/ \  
+  -e EXPLORE_URL=http://localhost:8002/ \
 ...
 ```
 
