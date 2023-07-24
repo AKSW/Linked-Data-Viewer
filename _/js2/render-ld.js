@@ -51,12 +51,12 @@
 	if (p === '@vocab')
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
-	  return `<span class="ldv-ns-color" style="color:#${hashCode(pFull)}">&#9640;</span>&nbsp;`
+	  return `<span class="ldv-ns-color" style="color:#${hashCode(pFull)}">&#9640;&nbsp;</span>`
 	    + `<span class="ldv-label"><span class="ldv-ns-label"><span class="ldv-ns-label-prefix">${p}</span><span class="ldv-ns-label-colon">:</span></span>${iri.substring(pFull.length)}</span>`
 	}
       }
     }
-    return `<span class="ldv-ns-color" style="color:#${hashCode(begin)}">&#9640;</span>&nbsp;<span class="ldv-label">${localpart}</span>`
+    return `<span class="ldv-ns-color" style="color:#${hashCode(begin)}">&#9640;&nbsp;</span><span class="ldv-label">${localpart}</span>`
   }
 
   const findPrefLabelLangValue = (values, lang) => {
