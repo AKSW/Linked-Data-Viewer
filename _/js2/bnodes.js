@@ -1,4 +1,4 @@
-/* global ldvLoadSubResource, ldvAddLabels */
+/* global ldvLoadSubResource, ldvAddLabels, ldvDef */
 
 (() => {
   const ldvBlankNodes = (rootIri, resolved) => {
@@ -76,12 +76,12 @@
 	  const head = heads.shift()
 
 	  let overflow = ''
-	  if (p.style.maxHeight === '23ex') {
-	    p.style.maxHeight = '55ex'
-	    overflow = 'overflow: auto; max-height: 51ex; '
+	  if (p.style.maxHeight === ldvDef.objMaxHeight) {
+	    p.style.maxHeight = ldvDef.objMaxHeightExpanded
+	    overflow = `overflow: auto; max-height: ${ldvDef.objInnerMaxHeightExpanded}; `
 	  }
 
-	  e.outerHTML = `<div style="${overflow}display: inline-block; padding: 5px; margin: 5px; border: 1px solid silver">` +
+	  e.outerHTML = `<div style="${overflow}display: inline-block; padding: 5px; margin: 5px; border: 1px solid silver; max-width: calc(100% - 6ex)">` +
 	    `<div>${head}</div>` +
 	    `<div style="font-size: 90%; font-weight: lighter">${html}</div>` +
 	    `</div>`
@@ -95,8 +95,9 @@
 	  const head = heads.shift()
 	  const expandButton = e.nextElementSibling
 	  e.outerHTML = head
-	  if (expandButton && expandButton.textContent === '[\u2212]')
-	    expandButton.textContent = '[+]'
+	  // restore expand button that was changed in load.js:ldvNavigate/ldvLoadInlinePlus
+	  if (expandButton && expandButton.textContent === ldvDef.collapseButtonText)
+	    expandButton.textContent = ldvDef.expandButtonText
 	  resolved[node] -= 1
 	})
       })

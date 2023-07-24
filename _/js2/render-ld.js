@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // based on https://github.com/zazuko/trifid-renderer-simple
 
-/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsOf */
+/* global jsonld, ldvAddLabels, ldvBlankNodes, ldvAddLabelsForUris, getLdvLabelLang, getLdvLabelsOf, ldvDef */
 
 (() => {
   const termRegEx = new RegExp('(#|/)([^#/]*)$')
@@ -159,7 +159,7 @@
       (loadMore ? loadMore : ' onclick="return ldvNavigate(this,event)"') +
       (navigate || same ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
       `>${label}</a>` +
-      `<span style="text-align: right; padding-left: 1ex; font-size: smaller; cursor: pointer; opacity: 0.2" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.2" onclick="return ldvLoadInlinePlus(this)">[+]</span>`
+      `<span style="text-align: right; padding-left: 1ex; font-size: smaller; cursor: pointer; opacity: 0.2" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.2" onclick="return ldvLoadInlinePlus(this)">${ldvDef.expandButtonText}</span>`
   }
 
   const renderTitle = (myIri, graph, titlePredicates) => {
@@ -279,9 +279,9 @@
 
   const renderObjectElements = (objects) => {
     return objects.map(function (object) {
-      return '<div style="max-height: 23ex; overflow: auto; text-overflow: ellipsis">' +
+      return `<div style="max-height: ${ldvDef.objMaxHeight}; overflow: auto; text-overflow: ellipsis">` +
 	renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') +
-	'<span style="float: right; font-size: smaller; opacity: 0.1; cursor: pointer" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.1" onclick="return ldvLookupGraph(this)">?g</span></div>'
+	`<span style="float: right; font-size: smaller; opacity: 0.1; cursor: pointer" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.1" onclick="return ldvLookupGraph(this)">?g</span></div>`
     }).join('')
   }
 

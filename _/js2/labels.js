@@ -77,7 +77,11 @@
     const root = document.querySelector('#graph table[id]')
     if (!root)
       return
-    const links = document.querySelectorAll('#graph table[id] a[href], #subtitle p a[href]')
+    const links = document.querySelectorAll([
+      '#graph table[id] a[href]',
+      '#subtitle p a[href]',
+      '#graphLookupPopup table[id] a[href]',
+    ].join(','))
     const uris = Array.from(new Set(Array.from(links).map(e => e.href)))
     uris.sort()
     ldvAddLabelsForUris(uris, links)
@@ -99,11 +103,13 @@
     const labelConfigHtml = document.getElementById('loadlabels')
     const checked = isLdvShowLabels()
     const currentLang = getLdvLabelLang()
-    labelConfigHtml.innerHTML = `<input type="checkbox" onclick="ldvChangeLabelConfig(this)" id="loadlabelsx"${checked ? ' checked' :''} />` +
+    const checkedIf = c => c ? ' checked' : ''
+    const selectedIf = c => c ? ' selected' : ''
+    labelConfigHtml.innerHTML = `<input type="checkbox" onclick="ldvChangeLabelConfig(this)" id="loadlabelsx"${checkedIf(checked)} />` +
       `<label for="loadlabelsx">Resolve labels</label>` +
       (ldvConfig.labelLangChoice.length > 1 ?
        ` <select style="padding: 0 1em 0 4pt" onchange="ldvChangeLabelLanguage(this)" id="loadlabelslang">` +
-       ldvConfig.labelLangChoice.map(lang => `<option value="${lang}"${currentLang === lang ? ' selected' : ''}>${lang}</option>`) +
+       ldvConfig.labelLangChoice.map(lang => `<option value="${lang}"${selectedIf(currentLang === lang)}>${lang}</option>`) +
        `</select>` :
        '')
   }

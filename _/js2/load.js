@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderBlankNodeSub, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveBnodes, ldvQueries, ldvConfig */
+/* global jsonld, makeMap, renderLd, renderBlankNodeSub, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveBnodes, ldvQueries, ldvConfig, ldvDef */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -294,8 +294,8 @@
     } else if (event.altKey) {
       const expandButton = elem.nextElementSibling
       loadInline(iri, elem)
-      if (expandButton && expandButton.textContent === '[+]')
-	expandButton.textContent = '[\u2212]'
+      if (expandButton && expandButton.textContent === ldvDef.expandButtonText)
+	expandButton.textContent = ldvDef.collapseButtonText
     } else {
       window.location = navigate
     }
@@ -309,13 +309,19 @@
 
     if (target.href) {
       loadInline(target.href, target)
-      elem.textContent = '[\u2212]'
+      elem.textContent = ldvDef.collapseButtonText
     } else {
       const graph = target.querySelector(':scope > div > table[id]')
       const node = target.querySelector(':scope > div > a[href]')
       if (graph && node) {
 	elem.previousElementSibling.replaceWith(node)
-	elem.textContent = '[+]'
+	elem.textContent = ldvDef.expandButtonText
+	// undo expansion steps done in bnodes.js:ldvResolveBnodes
+	const p = elem.previousElementSibling.parentElement
+
+	if (p.style.maxHeight === ldvDef.objMaxHeightExpanded) {
+	  p.style.maxHeight = ldvDef.objMaxHeight
+	}
       }
     }
   }
@@ -374,7 +380,7 @@
 	  if (e && (e.target.closest('a') || e.target.closest('*[onclick]') || e.target.closest(`#${popup.id}`)))
 	    return
 
-	  popup.style.display = 'none'
+	  popup.style.visibility = 'hidden'
 	  document.body.removeEventListener('click', closePopup, true)
 	}
 	popup.innerHTML = res ? res : '?'
@@ -382,7 +388,7 @@
 	popup.style.border = '1px solid'
 	popup.style.padding = '5px'
 	popup.style.background = 'rgba(255,255,255,0.7)'
-	popup.style.display = 'inherit'
+	popup.style.visibility = 'visible'
 	popup.style.position = 'absolute'
 	const root = document.firstElementChild
 	const er = elem.getBoundingClientRect()
