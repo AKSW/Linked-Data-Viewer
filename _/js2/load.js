@@ -241,7 +241,7 @@
     const infer = ldvConfig.infer
     const reverse = row.classList.contains('rdf-inverse')
     const s = table.id
-    const p = reverse ? 'urn:x-arq:reverse:' + property.href : property.href
+    const p = reverse ? ldvDef.reversePropPrefix + ':' + property.href : property.href
 
     const loadMoreQuery = reverse ?
 	  ldvQueries.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1, infer) :
@@ -253,7 +253,7 @@
 	  const p = Object.keys(json).find(prop => !prop.startsWith('@'))
 	  graph[p].splice(
 	    graph[p].findIndex(
-	      e => typeof e === 'object' && e['@type'] === 'urn:x-arq:more-results'
+	      e => typeof e === 'object' && e['@type'] === ldvDef.moreResultsObjId
 	    ), 1)
 	  graph[p].push(...(Array.isArray(json[p]) ? json[p] : [json[p]]))
 	}
@@ -319,9 +319,8 @@
 	// undo expansion steps done in bnodes.js:ldvResolveSubNodes
 	const p = elem.previousElementSibling.parentElement
 
-	if (p.style.maxHeight === ldvDef.objMaxHeightExpanded) {
-	  p.style.maxHeight = ldvDef.objMaxHeight
-	}
+	if (p.classList.contains('ldv-objects-box'))
+	  p.classList.remove('ldv-objects-box-expand')
       }
     }
   }
@@ -338,7 +337,7 @@
     const p = `<${pLink.getAttribute('href')}>`
 
     let o
-    const oParent = elem.closest('div[style*=max-height]')
+    const oParent = elem.closest('div.ldv-objects-box')
     const opfec = oParent.firstElementChild
     if (opfec instanceof HTMLAnchorElement) {
       o = `<${opfec.getAttribute('href')}>`
@@ -365,14 +364,7 @@
     }
     const pattern = inverse ? `${o} ${p} ${s}` : `${s} ${p} ${o}`
     const lookupId = 'urn:x-meta:source-graph-lookup'
-    fetchJsonLd(`PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        CONSTRUCT {
-          ?id <${ldvDef.sourceGraphPropId}> ?graph .
-        } WHERE {
-          BIND(<${lookupId}> as ?id) .
-          VALUES (?s ?p ?o) { ( ${pattern} ) }
-          GRAPH ?graph { ?s ?p ?o }
-        }`)
+    fetchJsonLd(ldvQueries.graphLookupQuery(lookupId, pattern))
       .then((json) => renderSubNode(lookupId, json))
       .then((res) => {
 	const popup = document.getElementById('graphLookupPopup')
@@ -381,25 +373,17 @@
 	  if (e && (e.target.closest('a') || e.target.closest('*[onclick]') || e.target.closest(`#${popup.id}`)))
 	    return
 
-	  popup.style.visibility = 'hidden'
+	  popup.classList.remove('ldv-popup-visible')
 	  document.body.removeEventListener('click', closePopup, true)
 	}
 	popup.innerHTML = res ? res : '?'
-	popup.style.fontSize = '80%'
-	popup.style.border = '1px solid'
-	popup.style.padding = '5px'
-	popup.style.background = 'rgba(255,255,255,0.7)'
-	popup.style.visibility = 'visible'
-	popup.style.position = 'absolute'
 	const root = document.firstElementChild
 	const er = elem.getBoundingClientRect()
 	popup.style.bottom = (root.clientHeight - er.bottom + er.height / 2 - window.scrollY) + 'px'
 	popup.style.right = (root.clientWidth - er.right + er.width / 2 - window.scrollX) + 'px'
 	popup.style.maxHeight = Math.min(popup.getBoundingClientRect().bottom, root.clientHeight) + 'px'
 	popup.style.maxWidth = Math.min(popup.getBoundingClientRect().right, root.clientWidth) + 'px'
-	popup.style.overflow = 'auto'
-	//popup.style.resize = 'both'
-	popup.style.zIndex = 1000 // for leaflet
+	popup.classList.add('ldv-popup-visible')
 	document.body.addEventListener('click', closePopup, true)
       })
   }

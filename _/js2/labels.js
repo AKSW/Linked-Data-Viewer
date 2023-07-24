@@ -40,7 +40,7 @@
 	if (showLabels)
 	  labelBox.innerHTML = `<em>${label}` +
 	    (llang ?
-	     `&nbsp;<span style="font-weight: lighter; font-size: smaller"><span>@</span><span style="font-size: smaller">${llang}</span></span>` :
+	     `&nbsp;<span class="ldv-lang-tag"><span>@</span><span class="ldv-lang-tag-lang">${llang}</span></span>` :
 	     '') + `</em>`
 	else
 	  e.title = label + (llang ? ' @' + llang : '')
@@ -108,7 +108,7 @@
     labelConfigHtml.innerHTML = `<input type="checkbox" onclick="ldvChangeLabelConfig(this)" id="loadlabelsx"${checkedIf(checked)} />` +
       `<label for="loadlabelsx">Resolve labels</label>` +
       (ldvConfig.labelLangChoice.length > 1 ?
-       ` <select style="padding: 0 1em 0 4pt" onchange="ldvChangeLabelLanguage(this)" id="loadlabelslang">` +
+       ` <select class="ldv-lang-select" onchange="ldvChangeLabelLanguage(this)" id="loadlabelslang">` +
        ldvConfig.labelLangChoice.map(lang => `<option value="${lang}"${selectedIf(currentLang === lang)}>${lang}</option>`) +
        `</select>` :
        '')

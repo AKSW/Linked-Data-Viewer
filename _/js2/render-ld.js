@@ -51,12 +51,12 @@
 	if (p === '@vocab')
 	  p = ''
 	if (iri.substring(0, pFull.length) === pFull) {
-	  return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(pFull)}">&#9640;</span>&nbsp;`
-	    + `<span class="ldv-label"><span style="font-size: smaller; font-weight: lighter; padding-right: 2pt"><span style="font-size: smaller">${p}</span><span>:</span></span>${iri.substring(pFull.length)}</span>`
+	  return `<span class="ldv-ns-color" style="color:#${hashCode(pFull)}">&#9640;</span>&nbsp;`
+	    + `<span class="ldv-label"><span class="ldv-ns-label"><span class="ldv-ns-label-prefix">${p}</span><span class="ldv-ns-label-colon">:</span></span>${iri.substring(pFull.length)}</span>`
 	}
       }
     }
-    return `<span style="font-size: smaller; vertical-align: text-bottom; color:#${hashCode(begin)}">&#9640;</span>&nbsp;<span class="ldv-label">${localpart}</span>`
+    return `<span class="ldv-ns-color" style="color:#${hashCode(begin)}">&#9640;</span>&nbsp;<span class="ldv-label">${localpart}</span>`
   }
 
   const findPrefLabelLangValue = (values, lang) => {
@@ -98,7 +98,7 @@
 
   const renderNodeLabelOrPlain = (node) => {
     if (typeof node === 'object') {
-      if ('@type' in node && node['@type'] === 'urn:x-arq:more-results')
+      if ('@type' in node && node['@type'] === ldvDef.moreResultsObjId)
 	return String.fromCodePoint(0x10fff)
       return renderNode(node, '@id' in node ? iriLabel(node['@id']) : '')
     }
@@ -141,7 +141,7 @@
   const renderLink = (iri, label) => {
     const origin = globals.datasetBase
 
-    const loadMore = (iri === 'urn:x-arq:more-results') ? ' onclick="return ldvLoadMore(this)"' : ''
+    const loadMore = (iri === ldvDef.moreResultsObjId) ? ' onclick="return ldvLoadMore(this)"' : ''
     var navigate, same
 
     if (iri.slice(0, origin.length) === origin)
@@ -159,7 +159,7 @@
       (loadMore ? loadMore : ' onclick="return ldvNavigate(this,event)"') +
       (navigate || same ? '' : ' target="_blank"') + // open IRIs with the same origin in the same tab, all others in a new tab
       `>${label}</a>` +
-      `<span style="text-align: right; padding-left: 1ex; font-size: smaller; cursor: pointer; opacity: 0.2" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.2" onclick="return ldvLoadInlinePlus(this)">${ldvDef.expandButtonText}</span>`
+      `<span class="ldv-expand-button" onclick="return ldvLoadInlinePlus(this)">${ldvDef.expandButtonText}</span>`
   }
 
   const renderTitle = (myIri, graph, titlePredicates) => {
@@ -219,7 +219,7 @@
 	  `<span>@<span>${literal['@language']}</span></span></span>`
       } else if ('@type' in literal) {
 	return `<span><span>${literal['@value']}</span> ` +
-	  `<span style="font-size: smaller">(<span>` +
+	  `<span class="ldv-literal-datatype-p">(<span>` +
 	  renderIri(literal['@type'], iriLabel(literal['@type'])) +
 	  `</span>)</span></span>`
       } else {
@@ -279,10 +279,10 @@
 
   const renderObjectElements = (objects) => {
     return objects.map(function (object) {
-      return `<div style="max-height: ${ldvDef.objMaxHeight}; overflow: auto; text-overflow: ellipsis">` +
+      return `<div class="ldv-objects-box">` +
 	renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') +
 	(ldvConfig.graphLookup === 'yes' ?
-	 `<span style="float: right; font-size: smaller; opacity: 0.1; cursor: pointer" onmouseover="style.opacity=0.8" onmouseout="style.opacity=0.1" onclick="return ldvLookupGraph(this)">?g</span></div>` : '')
+	 `<span class="ldv-graph-lookup-button" onclick="return ldvLookupGraph(this)">?g</span></div>` : '')
     }).join('')
   }
 
@@ -313,13 +313,13 @@
 	}
       }
 
-      var isReverse = (predicate.slice(0, 18) === 'urn:x-arq:reverse:')
+      var isReverse = (predicate.slice(0, 18) === ldvDef.reversePropPrefix + ':')
       if (isReverse)
 	predicate = predicate.slice(18)
 
       return `<tr${isReverse ? ' class="rdf-inverse"' : ''}>` +
-	`<td class="table-predicate col-lg-4"${isReverse ? ' style="padding-left: 1.5em"': ''}>` +
-	(predicate === ldvDef.sourceGraphPropId ? '<b style="text-variant: small-caps">source graph</b>' :
+	`<td class="table-predicate col-lg-4">` +
+	(predicate === ldvDef.sourceGraphPropId ? '<span class="ldv-source-graph-prop">source graph</span>' :
 	 (isReverse ? "is " : "") +
 	 renderPredicate(predicate, predicateLabel(predicate, vocab)) +
 	 (isReverse ? " of" : "")) +

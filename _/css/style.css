@@ -113,3 +113,146 @@ header.float {
     right: calc(50vw - 570px);
 }
 }
+
+.ldv-sub-node {
+    display: inline-block;
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid silver;
+    max-width: calc(100% - 6ex);
+    overflow: auto;
+    vertical-align: top;
+}
+
+.ldv-objects-box {
+    max-height: 23ex;
+    overflow: auto;
+    text-overflow: ellipsis;
+}
+
+.ldv-objects-box-expand {
+    max-height: 55ex;
+}
+
+.ldv-graph-lookup-button {
+    float: right;
+    font-size: smaller;
+    opacity: 0.1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.ldv-graph-lookup-button:hover {
+    opacity: 0.8;
+}
+
+.ldv-sub-node-overflow {
+    overflow: auto;
+    max-height: 51ex;
+}
+
+.ldv-sub-node-sub {
+    font-size: 90%;
+    font-weight: lighter;
+}
+
+.ldv-lang-select {
+    padding: 0 1em 0 4pt;
+}
+
+.ldv-lang-tag {
+    font-weight: lighter;
+    font-size: smaller;
+}
+
+.ldv-lang-tag-lang {
+    font-size: smaller;
+}
+
+#graphLookupPopup {
+    font-size: 80%;
+    border: 1px solid;
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    overflow: auto;
+    visibility: hidden;
+    z-index: 1000; /* for leaflet */
+}
+
+#graphLookupPopup.ldv-popup-visible {
+    visibility: visible;
+}
+
+.ldv-mini-map {
+    height: 150px;
+    width: 400px;
+    resize: both;
+    overflow: auto;
+}
+
+.ldv-ns-color {
+    font-size: smaller;
+    vertical-align: text-bottom;
+}
+
+.ldv-ns-label {
+    font-size: smaller;
+    font-weight: lighter;
+    padding-right: 2pt;
+}
+
+.ldv-ns-label-prefix {
+    font-size: smaller;
+}
+
+.ldv-literal-datatype-p {
+    font-size: smaller;
+}
+
+.ldv-expand-button {
+    text-align: right;
+    padding-left: 1ex;
+    font-size: smaller;
+    cursor: pointer;
+    opacity: 0.2;
+    user-select: none;
+}
+
+.ldv-expand-button:hover {
+    opacity: 0.8;
+}
+
+tr.rdf-inverse > td.table-predicate,
+.table > tbody > tr.rdf-inverse > td.table-predicate {
+    padding-left: 1.5em;
+}
+
+.ldv-source-graph-prop {
+    font-variant: small-caps;
+    font-weight: bold;
+}
+
+img.ldv-logo-top {
+    display: inline-block;
+    height: 17px;
+    vertical-align: baseline;
+}
+
+.ldv-logo-bottom {
+    height: 60px;
+}
+
+.ldv-footer-margin {
+    margin-top: 100px;
+    text-align: center;
+}
+
+.ldv-config-links {
+    font-size: smaller;
+}
+
+@media print {
+    .ldv-expand-button { display: none; }
+    .ldv-graph-lookup-button { display: none; }
+}

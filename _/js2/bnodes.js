@@ -58,9 +58,9 @@
 	const head = e.outerHTML
 	heads.push(head)
 	const id = `bn_${i++}_${e.href}`
-	e.outerHTML = `<div id="${id}" style="display: inline-block; padding: 5px; margin: 5px; border: 1px solid silver">` +
+	e.outerHTML = `<div id="${id}" class="ldv-sub-node">` +
 	  `<div>${head}</div>` +
-	  `<div style="font-size: 90%; font-weight: lighter">Loading...</div>` +
+	  `<div class="ldv-sub-node-sub">Loading...</div>` +
 	  `</div>`
 	const newE = document.getElementById(id)
 	newE.removeAttribute('id')
@@ -76,14 +76,14 @@
 	  const head = heads.shift()
 
 	  let overflow = ''
-	  if (p.style.maxHeight === ldvDef.objMaxHeight) {
-	    p.style.maxHeight = ldvDef.objMaxHeightExpanded
-	    overflow = `overflow: auto; max-height: ${ldvDef.objInnerMaxHeightExpanded}; `
+	  if (p.classList.contains('ldv-objects-box')) {
+	    p.classList.add('ldv-objects-box-expand')
+	    overflow = 'ldv-sub-node-overflow '
 	  }
 
-	  e.outerHTML = `<div style="${overflow}display: inline-block; padding: 5px; margin: 5px; border: 1px solid silver; max-width: calc(100% - 6ex)">` +
+	  e.outerHTML = `<div class="${overflow}ldv-sub-node">` +
 	    `<div>${head}</div>` +
-	    `<div style="font-size: 90%; font-weight: lighter">${html}</div>` +
+	    `<div class="ldv-sub-node-sub">${html}</div>` +
 	    `</div>`
 	  resolved[node] += 1
 	})

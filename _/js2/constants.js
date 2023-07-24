@@ -1,11 +1,10 @@
 (() => {
   const ldvDef = {
-    objMaxHeight: '23ex',
-    objMaxHeightExpanded: '55ex',
-    objInnerMaxHeightExpanded: '51ex',
     expandButtonText: '[+]',
     collapseButtonText: '[\u2212]',
-    sourceGraphPropId: 'urn:x-meta:originatingGraph',
+    sourceGraphPropId: 'urn:x-meta:originating-graph',
+    reversePropPrefix: 'urn:x-ldv:reverse',
+    moreResultsObjId: 'urn:x-ldv:more-results',
   }
   window.ldvDef = ldvDef
 })()

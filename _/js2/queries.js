@@ -60,7 +60,7 @@
                     } LIMIT 11
                   }
                 }  GROUP BY ?s_ ?p
-              } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
+              } bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
             }
           }
         } UNION {
@@ -94,11 +94,11 @@
                   } LIMIT 11
                 }
               } GROUP BY ?s_ ?rp
-            } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
+            } bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
           }
         }
       }
-      bind(uri(concat('urn:x-arq:reverse:',str(?rp))) AS ?p)
+      bind(uri(concat('${ldvDef.reversePropPrefix}:',str(?rp))) AS ?p)
       bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
     }
   }
@@ -120,13 +120,13 @@
           } LIMIT ${limit + 1} OFFSET ${offset}
         }
       }
-    } bind(if(?oCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?o)
+    } bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
   }
   ${ infer ? '}' : '' }
 }
 `,
     loadMoreReverseQuery: (o, p, limit, offset, infer) => `CONSTRUCT {
-  <${ o.startsWith('_:') ? 'bnode://' + o.slice(2) : o }> <urn:x-arq:reverse:${p}> ?s .
+  <${ o.startsWith('_:') ? 'bnode://' + o.slice(2) : o }> <${ldvDef.reversePropPrefix}:${p}> ?s .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?s {
@@ -140,7 +140,7 @@
           } LIMIT ${limit + 1} OFFSET ${offset}
         }
       }
-    } bind(if(?sCnt>10,strdt('...',<urn:x-arq:more-results>),coalesce()) AS ?s)
+    } bind(if(?sCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?s)
   }
   ${ infer ? '}' : '' }
 }
@@ -179,7 +179,15 @@ JSON {
   <${iri}> <http://www.opengis.net/ont/geosparql#asWKT> ?wktLiteral
   ${ infer ? '}' : '' }
 }
-`
+`,
+    graphLookupQuery: (lookupId, pattern) => `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+CONSTRUCT {
+  ?id <${ldvDef.sourceGraphPropId}> ?graph .
+} WHERE {
+  BIND(<${lookupId}> as ?id) .
+  VALUES (?s ?p ?o) { ( ${pattern} ) }
+  GRAPH ?graph { ?s ?p ?o }
+}`,
   }
 
   window.ldvQueries = ldvQueries

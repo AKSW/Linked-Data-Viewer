@@ -8,10 +8,7 @@
     const titleDiv = document.getElementById('title')
     const mapBoxDiv = document.createElement('div')
     mapBoxDiv.id = 'map'
-    mapBoxDiv.style.height = '150px'
-    mapBoxDiv.style.width = '400px'
-    mapBoxDiv.style.resize = 'both'
-    mapBoxDiv.style.overflow = 'auto'
+    mapBoxDiv.classList.add('ldv-mini-map')
     const mapDiv = document.createElement('div')
     mapDiv.style.width = '100%'
     mapDiv.style.height = '100%'
