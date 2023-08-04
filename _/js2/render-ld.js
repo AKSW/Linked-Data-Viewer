@@ -282,7 +282,8 @@
       return `<div class="ldv-objects-box">` +
 	renderNode(object, '@id' in object ? iriLabel(object['@id']) : '') +
 	(ldvConfig.graphLookup === 'yes' ?
-	 `<span class="ldv-graph-lookup-button" onclick="return ldvLookupGraph(this)">?g</span></div>` : '')
+	 `<span class="ldv-graph-lookup-button" onclick="return ldvLookupGraph(this)">?g</span>` : '') +
+	`</div>`
     }).join('')
   }
 
