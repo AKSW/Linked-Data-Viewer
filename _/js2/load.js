@@ -247,8 +247,10 @@
 	  ldvQueries.loadMoreReverseQuery(s, property.href, 10, cell.childElementCount - 1, infer) :
 	  ldvQueries.loadMoreQuery(s, property.href, 10, cell.childElementCount - 1, infer)
     fetchJsonLd(loadMoreQuery)
-      .then((json) => {
-	const graph = JSON.parse(document.getElementById('data').innerHTML)
+      .then((ojson) => {
+	const ograph = JSON.parse(document.getElementById('data').innerHTML)
+	const [ graph, json ] = ograph['@id'] === undefined && ojson['@id'] === undefined ?
+	      [ ograph['@graph'][0], ojson['@graph'][0] ] : [ ograph, ojson ]
 	if (graph['@id'] === json['@id']) {
 	  const p = Object.keys(json).find(prop => !prop.startsWith('@'))
 	  graph[p].splice(
@@ -257,7 +259,7 @@
 	    ), 1)
 	  graph[p].push(...(Array.isArray(json[p]) ? json[p] : [json[p]]))
 	}
-	document.getElementById('data').innerHTML = JSON.stringify(graph)
+	document.getElementById('data').innerHTML = JSON.stringify(ograph)
 	return renderMoreResults(json, s, p, elem, cell)
       })
 
