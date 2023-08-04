@@ -3,7 +3,7 @@
     endpointUrl: '@ENDPOINT_URL@',
     endpointOptions: {
       mode: 'cors',
-      credentials: 'include',
+      credentials: '@FETCH_CREDENTIALS@',
       method: 'POST',
     },
     datasetBase: window.location.origin,
