@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderSubNode, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveSubNodes, ldvQueries, ldvConfig, ldvDef */
+/* global jsonld, makeMap, renderLd, renderSubNode, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveSubNodes, ldvUnresolveSubNodes, ldvQueries, ldvConfig, ldvDef */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -314,6 +314,7 @@
       const graph = target.querySelector(':scope > div > table[id]')
       const node = target.querySelector(':scope > div > a[href]')
       if (graph && node) {
+	ldvUnresolveSubNodes([node.getAttribute('href')], [graph])
 	elem.previousElementSibling.replaceWith(node)
 	elem.textContent = ldvDef.expandButtonText
 	// undo expansion steps done in bnodes.js:ldvResolveSubNodes

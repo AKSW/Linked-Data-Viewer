@@ -459,6 +459,7 @@
 	elem.closest('div').remove()
 
 	ldvAddLabelsForUris(newUris, cell.querySelectorAll('a[href]'))
+	ldvBlankNodes(null)
       })
   }
 

@@ -1,13 +1,14 @@
 /* global ldvLoadSubResource, ldvAddLabels, ldvDef */
 
 (() => {
+  const globals = { resolved: {} }
+
   const ldvBlankNodes = (rootIri, resolved) => {
     const root = document.querySelector('#graph table[id]')
     if (!root)
       return
 
-    if (!resolved)
-      resolved = {}
+    resolved ||= globals.resolved
 
     if (rootIri)
       resolved[rootIri] = 1
@@ -38,7 +39,7 @@
 	ldvResolveSubNodes(bnodes.slice(1), links, resolved)
     }
 
-    resolved ||= {}
+    resolved ||= globals.resolved
 
     const node = bnodes[0]
     if (node in resolved) {
@@ -107,6 +108,17 @@
 
   }
 
+  const ldvUnresolveSubNodes = (nodes, links, resolved) => {
+    resolved ||= globals.resolved
+
+    links.forEach(link => {
+      const subNodes = link.querySelectorAll(':scope table[id]')
+      subNodes.forEach(n => delete resolved[n.id])
+    })
+    nodes.forEach(node => delete resolved[node])
+  }
+
   window.ldvBlankNodes = ldvBlankNodes
   window.ldvResolveSubNodes = ldvResolveSubNodes
+  window.ldvUnresolveSubNodes = ldvUnresolveSubNodes
 })()
