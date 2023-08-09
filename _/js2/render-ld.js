@@ -152,6 +152,8 @@
       same = parsed.hostname === globals.etld1 || parsed.hostname.endsWith(`.${globals.etld1}`)
     }
 
+    if (iri === ldvDef.moreResultsObjId)
+      label = 'Load more results'
     if (iri === label)
       label = `<span class="ldv-label">${label}</span>`
 
