@@ -70,6 +70,8 @@
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     fetchPlain(askQuery)
       .then((text) => {
+	if (!text)
+	  return
 	if (text.trim() === 'yes') {
 	  fetchJsonLd(describeQuery)
 	    .then((json) => {
@@ -193,7 +195,7 @@
       exploreLink.innerHTML = `<a href="${ ldvConfig.exploreUrl }#r=${ resourceIri }" target="_blank">Explore</a>`
   }
 
-  const loadWindowResource = () => {
+  const ldvLoadWindowResource = () => {
     if (window.location.pathname.substring(0, 2) === '/_') // internal files
       return
 
@@ -392,7 +394,10 @@
   }
 
   window.addEventListener('hashchange', (event) => window.location.reload())
-  window.addEventListener('DOMContentLoaded', (event) => loadWindowResource())
+  if (!window.useIframeAuth)
+    window.addEventListener('DOMContentLoaded', (event) => ldvLoadWindowResource())
+  else
+    window.ldvLoadWindowResource = ldvLoadWindowResource
 
   window.ldvFetchTypeQuery = ldvFetchTypeQuery
   window.ldvNavigate = ldvNavigate
