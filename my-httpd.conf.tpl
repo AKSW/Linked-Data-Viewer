@@ -30,6 +30,7 @@ User www-data
 Group www-data
 </IfModule>
 ServerAdmin admin@localhost
+	AllowEncodedSlashes On
 <Directory />
     AllowOverride none
     Require all denied
@@ -44,8 +45,8 @@ DocumentRoot "/usr/local/apache2/htdocs"
 
     RewriteEngine On
     RewriteCond "%{HTTP_ACCEPT}" !text/html
-#    RewriteRule .+ "@ENDPOINT_URL@?query=describe<https://%{SERVER_NAME}/$0>" 
-    RewriteRule .+ "@ENDPOINT_URL@?query=describe<@IRI_SCHEME@://%{SERVER_NAME}@_IRI_PORT@/$0>"
+    RewriteCond "%{THE_REQUEST}" \ (.+)\ HTTP/
+    RewriteRule .+ "@ENDPOINT_URL@?query=describe<@IRI_SCHEME@://%{SERVER_NAME}@_IRI_PORT@%1>"
 
 </Directory>
 <Directory "/_">
