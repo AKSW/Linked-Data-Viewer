@@ -155,7 +155,7 @@ JSON {
   } WHERE {
     VALUES ?uri_ { ${uris} }
     bind(if(isblank(?uri_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?uri_))),?uri_) as ?uri)
-    OPTIONAL { LATERAL {
+    LATERAL { OPTIONAL {
       ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
       SELECT ?uri ?uri_ ?label ?lang {
         {
