@@ -2,6 +2,7 @@
 
 (() => {
   const labels = { '': {} }
+  const labelsPending = {}
 
   const fetchLabelsJson = (query) => {
     return ldvFetchTypeQuery('application/json', query)
@@ -19,6 +20,9 @@
       links.forEach(e => {
 	const labelBox = e.querySelector('.ldv-label')
 	if (!labelBox)
+	  return
+
+	if (labelsPending[lang][e.href])
 	  return
 
 	if (!e.classList.contains('isLabelled')) {
@@ -52,19 +56,21 @@
     const infer = ldvConfig.infer
 
     labels[lang] ||= {}
-    const newUris = Array.from(new Set(Array.from(uris).filter(e => !(e in labels[lang]))))
+    labelsPending[lang] ||= {}
+    const newUris = Array.from(new Set(Array.from(uris)
+				       .filter(e => !(e in labels[lang] || e in labelsPending[lang]))))
     newUris.sort()
 
     if (!newUris.length)
       return Promise.resolve([])
 
-    const values = uris.map(e => `<${ e.startsWith('bnode://') ? '_:' + e.slice(8) : e }>`).join(' ')
+    newUris.forEach(e => labelsPending[lang][e] = true)
+    const values = newUris.map(e => `<${ e.startsWith('bnode://') ? '_:' + e.slice(8) : e }>`).join(' ')
     const query = ldvQueries.fetchLabelsQuery(values, lang, infer)
 
     return fetchLabelsJson(query).then((json) => {
-      json.forEach(e => {
-	labels[lang][e.uri] = e
-      })
+      newUris.forEach(e => delete labelsPending[lang][e])
+      json.forEach(e => labels[lang][e.uri] = e)
     })
   }
 
