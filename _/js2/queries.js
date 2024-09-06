@@ -17,7 +17,7 @@
  }
 }
 `,
-    describeQuery: (iri, infer) => `CONSTRUCT {
+    describeQuery: (iri, infer, reverseEnabled) => `CONSTRUCT {
   ?s ?p ?o .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
@@ -29,8 +29,8 @@
         bind(<${iri}> AS ?x)
       }
     }
-  } LATERAL {
-    {
+  } LATERAL {` +
+    [`{
       bind(?x AS ?s_) .
       LATERAL {
         {
@@ -72,7 +72,7 @@
         }
       }
       bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
-    } UNION {
+    }`, ... reverseEnabled === 'yes' ? [`{
       bind(?x AS ?s_) .
       LATERAL {
         {
@@ -100,7 +100,7 @@
       }
       bind(uri(concat('${ldvDef.reversePropPrefix}:',str(?rp))) AS ?p)
       bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
-    }
+    }`] : [] ].join(` UNION `) + `
   }
   ${ infer ? '}' : '' }
 }

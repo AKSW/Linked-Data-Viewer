@@ -79,6 +79,10 @@ header li > span + span::before {
     display: inline-block;
 }
 
+header li > span + span:empty::before {
+  content: "";
+}
+
 header.float {
     position: absolute;
     top: calc(64px + 2em);

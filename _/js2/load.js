@@ -66,7 +66,7 @@
   const loadResource = (iri) => {
     const infer = ldvConfig.infer
     const askQuery = ldvQueries.askQuery(iri)
-    const describeQuery = ldvQueries.describeQuery(iri, infer)
+    const describeQuery = ldvQueries.describeQuery(iri, infer, ldvConfig.reverseEnabled)
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     fetchPlain(askQuery)
       .then((text) => {
@@ -89,7 +89,7 @@
   const ldvLoadSubResource = (iri) => {
     const infer = ldvConfig.infer
     const askQuery = ldvQueries.askQuery(iri)
-    const describeQuery = ldvQueries.describeQuery(iri, infer)
+    const describeQuery = ldvQueries.describeQuery(iri, infer, ldvConfig.reverseEnabled)
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     return new Promise((resolve, reject) => {
       fetchPlain(askQuery)
@@ -242,6 +242,8 @@
 
     const infer = ldvConfig.infer
     const reverse = row.classList.contains('rdf-inverse')
+    if (reverse && !ldvConfig.reverseEnabled)
+      return !true
     const s = table.id
     const p = reverse ? ldvDef.reversePropPrefix + ':' + property.href : property.href
 

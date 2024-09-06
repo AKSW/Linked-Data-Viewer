@@ -34,6 +34,12 @@ if [ "${USE_CREDS+set}" = set ] && [ "${USE_CREDS}" != yes ] && [ "${USE_CREDS}"
     exit 1
 fi
 
+if [ "${SHOW_INVERSE+set}" = set ] && [ "${SHOW_INVERSE}" != yes ] && [ "${SHOW_INVERSE}" != no ]; then
+    echo "SHOW_INVERSE is set to \`${SHOW_INVERSE}' but must be yes or no"
+    exit 1
+fi
+export SHOW_INVERSE=${SHOW_INVERSE-yes}
+
 if [ "${USE_CREDS-yes}" = yes ]; then
     export FETCH_CREDENTIALS=include
 else
@@ -51,6 +57,7 @@ ENDPOINT_URL = ${ENDPOINT_URL}
 USE_CREDS    = ${USE_CREDS-yes}
 EXPLORE_URL  = ${EXPLORE_URL}
 GRAPH_LOOKUP = ${GRAPH_LOOKUP-no}
+SHOW_INVERSE = ${SHOW_INVERSE}
 IRI_SCHEME   = ${IRI_SCHEME}
 IRI_PORT     = ${_IRI_PORT#:}
 "

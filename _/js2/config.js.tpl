@@ -9,6 +9,7 @@
     datasetBase: window.location.origin,
     exploreUrl: '@EXPLORE_URL@',
     graphLookup: '@GRAPH_LOOKUP@',
+    reverseEnabled: '@SHOW_INVERSE@',
     labelLang: 'en',
     labelLangChoice: ['en', 'de', 'nl', 'fr'],
     infer: false,
