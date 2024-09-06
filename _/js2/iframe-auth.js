@@ -4,7 +4,18 @@
     if (window.location.pathname.substring(0, 2) === '/_') // internal files
       return
 
-    if (window.location.pathname.slice(0, 2) === '/*' && window.location.pathname.length > 2)
+    var pathname
+    if (ldvConfig.fileOnly === 'yes') {
+      pathname = '/' + window.location.search.substring(1)
+      let searchStart = pathname.indexOf("?", 1)
+      if (searchStart !== -1) {
+	pathname = pathname.substring(0, searchStart)
+      }
+    } else {
+      pathname = window.location.pathname
+    }
+
+    if (pathname.slice(0, 2) === '/*' && pathname.length > 2)
       return
 
     document.querySelector('body').insertAdjacentHTML(

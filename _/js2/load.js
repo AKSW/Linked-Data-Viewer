@@ -19,7 +19,11 @@
 
   const fetchPlain = (query) => {
     return ldvFetchTypeQuery('text/plain', query)
-      .then((response) => response.status == 401 ? window.location.replace('/_/unauthorized') : response.text())
+      .then((response) => response.status == 401 ?
+	    window.location.replace('/_/unauthorized')
+	    : !response.ok ?
+	    window.location.replace('/_/' + response.statusText.toLowerCase().replaceAll(/\s+/g, '_'))
+	    : response.text())
   }
 
   const fetchJsonLd = (query) => {
@@ -107,8 +111,8 @@
     })
   }
 
-  const doUrlConfig = () => {
-    let config = window.location.pathname.split('*')
+  const doUrlConfig = (pathname, search) => {
+    let config = pathname.split('*')
     let result = {}
     config.shift()
     config.forEach((e) => {
@@ -140,16 +144,16 @@
     })
 
     const origin = ldvConfig.datasetBase
-    const iri = window.location.search.substring(1) + window.location.hash
+    const iri = search.substring(1) + window.location.hash
 
     var navigate
 
     if (result.localMode)
-      navigate = '/*?' + iri
-    else if (iri.slice(0, origin.length) === origin)
+      navigate = (ldvConfig.fileOnly === 'yes' ? `?` : `/`) + '*?' + iri
+    else if (ldvConfig.fileOnly !== 'yes' && iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
     else
-      navigate = '/?' + iri
+      navigate = (ldvConfig.fileOnly === 'yes' ? `?` : `/`) + '?' + iri
 
     window.location.replace(navigate)
   }
@@ -158,11 +162,18 @@
     const configLink = document.getElementById('configlink')
     const link = configLink.querySelector('a[href]')
     let parsed = new URL(link.href)
-    parsed.pathname = `/` +
-      `*infer${ ldvConfig.infer ? 1 : 0 }` +
-      `*label${ isLdvShowLabels() ? 1 : 0 }` +
-      `*lang${ getLdvLabelLang() }` +
-      (ldvConfig.localMode ? '*' : '')
+    let configStr =
+	`*infer${ ldvConfig.infer ? 1 : 0 }` +
+	`*label${ isLdvShowLabels() ? 1 : 0 }` +
+	`*lang${ getLdvLabelLang() }` +
+	(ldvConfig.localMode ? '*' : '')
+
+    if (ldvConfig.fileOnly === 'yes') {
+      let searchStart = parsed.search.indexOf('?', 1)
+      parsed.search = '?' + configStr + (searchStart !== -1 ? parsed.search.substring(searchStart) : '')
+    } else {
+      parsed.pathname = `/` + configStr
+    }
     link.href = parsed
   }
 
@@ -176,14 +187,16 @@
     const switchLink = document.getElementById('localswitch')
     switchLink.innerHTML =
       (ldvConfig.localMode ?
-       `<a href="` +
+       `<a href="` + (ldvConfig.fileOnly === 'yes' ?
+		      `??${resourceIri}` :
        (resourceIri.slice(0, ldvConfig.datasetBase.length) === ldvConfig.datasetBase ?
-	resourceIri.slice(ldvConfig.datasetBase.length) : `/?${resourceIri}`) +
+	resourceIri.slice(ldvConfig.datasetBase.length) : `/?${resourceIri}`)) +
        `">Global Browsing</a>` :
-       `<a href="/*?${resourceIri}">Local Browsing</a>`)
+       `<a href="` + (ldvConfig.fileOnly === 'yes' ?
+		      `?` : `/`) + `*?${resourceIri}">Local Browsing</a>`)
 
     const configLink = document.getElementById('configlink')
-    configLink.innerHTML = `<a href="/` +
+    configLink.innerHTML = `<a href="` + (ldvConfig.fileOnly === 'yes' ? `?` : `/`) +
       `*infer${ ldvConfig.infer ? 1 : 0 }` +
       `*label${ isLdvShowLabels() ? 1 : 0 }` +
       `*lang${ getLdvLabelLang() }` +
@@ -199,20 +212,36 @@
     if (window.location.pathname.substring(0, 2) === '/_') // internal files
       return
 
-    if (window.location.pathname.slice(0, 2) === '/*' && window.location.pathname.length > 2) {
-      doUrlConfig()
+    var pathname
+    var search
+    if (ldvConfig.fileOnly === 'yes') {
+      pathname = '/' + window.location.search.substring(1)
+      let searchStart = pathname.indexOf("?", 1)
+      if (searchStart !== -1) {
+	search = pathname.substring(searchStart)
+	pathname = pathname.substring(0, searchStart)
+      }
+    } else {
+      pathname = window.location.pathname
+      search = window.location.search
+    }
+
+    if (pathname.slice(0, 2) === '/*' && pathname.length > 2) {
+      doUrlConfig(pathname, search)
       return
     }
 
     var resourceIri
 
     ldvConfig.infer = !! window.localStorage.getItem('/ldv/infer')
-    ldvConfig.localMode = (window.location.pathname === '/*')
+    ldvConfig.localMode = (pathname === '/*')
 
-    if ((window.location.pathname === '/' || window.location.pathname === '/*') &&
-	window.location.search)
-      resourceIri = window.location.search.substring(1) + window.location.hash
-    else
+    if ((pathname === '/' || pathname === '/*') && search)
+      resourceIri = search.substring(1) + window.location.hash
+    else if (ldvConfig.fileOnly) {
+      resourceIri = ldvConfig.datasetBase
+      ldvConfig.localMode = true
+    } else
       resourceIri = ldvConfig.datasetBase + document.URL.slice(window.location.origin.length)
 
     if (ldvConfig.endpointUrl.slice(0, 1) !== '@') {
@@ -286,9 +315,9 @@
     var navigate
 
     if (iri.slice(0, 8) === 'bnode://')
-      navigate = (ldvConfig.localMode ? '/*?_:' : '/?_:') + iri.slice(8)
+      navigate = (ldvConfig.fileOnly === 'yes' ? `?` : `/`) + (ldvConfig.localMode ? '*' : '') + '?_:' + iri.slice(8)
     else if (event.shiftKey != ldvConfig.localMode)
-      navigate = (ldvConfig.localMode ? '/*?' : '/?') + iri
+      navigate = (ldvConfig.fileOnly === 'yes' ? `?` : `/`) + (ldvConfig.localMode ? '*' : '') + '?' + iri
     else if (iri.slice(0, origin.length) === origin)
       navigate = iri.slice(origin.length)
 

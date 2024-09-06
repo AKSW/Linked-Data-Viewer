@@ -13,6 +13,7 @@
     labelLang: 'en',
     labelLangChoice: ['en', 'de', 'nl', 'fr'],
     infer: false,
+    fileOnly: 'no',
   }
 
   window.ldvConfig = ldvConfig
