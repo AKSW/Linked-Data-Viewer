@@ -1,20 +1,20 @@
 /* global ldvDef */
 (() => {
   const ldvQueries = {
-    askQuery: iri => `ASK {
- {
+    askQuery: (iri, reverseEnabled) => `ASK {` +
+ [`{
     bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?s) .
     ?s ?p ?o
- } UNION {
+ }`, `{
     bind(<${iri}> as ?s) .
     ?s ?p ?o
- } UNION {
+ }`, ... reverseEnabled ? [`{
     bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?o) .
     ?s ?p ?o
- } UNION {
+ }`, `{
     bind(<${iri}> as ?o) .
     ?s ?p ?o
- }
+ }`] : [] ].join(` UNION `) + `
 }
 `,
     describeQuery: (iri, infer, reverseEnabled) => `CONSTRUCT {

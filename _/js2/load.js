@@ -65,7 +65,7 @@
 
   const loadResource = (iri) => {
     const infer = ldvConfig.infer
-    const askQuery = ldvQueries.askQuery(iri)
+    const askQuery = ldvQueries.askQuery(iri, ldvConfig.reverseEnabled)
     const describeQuery = ldvQueries.describeQuery(iri, infer, ldvConfig.reverseEnabled)
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     fetchPlain(askQuery)
@@ -88,7 +88,7 @@
 
   const ldvLoadSubResource = (iri) => {
     const infer = ldvConfig.infer
-    const askQuery = ldvQueries.askQuery(iri)
+    const askQuery = ldvQueries.askQuery(iri, ldvConfig.reverseEnabled)
     const describeQuery = ldvQueries.describeQuery(iri, infer, ldvConfig.reverseEnabled)
     const bIri = iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri
     return new Promise((resolve, reject) => {
