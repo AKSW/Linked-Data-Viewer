@@ -1,4 +1,4 @@
-/* global ldvDef */
+/* global ldvDef, ldvStartpageMoreClassesInstQuery, ldvStartpageMoreClassesOntQuery */
 (() => {
   const ldvQueries = {
     askQuery: (iri, reverseEnabled) => `ASK {` +
@@ -8,7 +8,7 @@
  }`, `{
     bind(<${iri}> as ?s) .
     ?s ?p ?o
- }`, ... reverseEnabled ? [`{
+ }`, ... reverseEnabled === 'yes' ? [`{
     bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?o) .
     ?s ?p ?o
  }`, `{
@@ -105,7 +105,9 @@
   ${ infer ? '}' : '' }
 }
 `,
-    loadMoreQuery: (s, p, limit, offset, infer) => `CONSTRUCT {
+    loadMoreQuery: (s, p, limit, offset, infer) => p === ldvDef.classesInstPropId ? ldvStartpageMoreClassesInstQuery(limit, offset)
+      : p === ldvDef.classesOntPropId ? ldvStartpageMoreClassesOntQuery(limit, offset)
+      : `CONSTRUCT {
   <${ s.startsWith('_:') ? 'bnode://' + s.slice(2) : s }> <${p}> ?o .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
