@@ -138,7 +138,7 @@
 	      renderLdvLabelConfig()
 	    })
 	    .catch((err) => {
-	      errorPage(iri, err.statusText, err.text())
+	      errorPage(iri, err.statusText || err.name, err && err.text ? err.text() : err.message)
 	      renderLdvLabelConfig()
 	    })
 	} else if (ldvConfig.fileOnly === 'yes') {
@@ -149,7 +149,7 @@
 	}
       })
       .catch((err) => {
-	errorPage(iri, err.statusText, err.text())
+	errorPage(iri, err.statusText || err.name, err && err.text ? err.text() : err.message)
 	renderLdvLabelConfig()
       })
   }
