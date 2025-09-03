@@ -46,7 +46,7 @@ DocumentRoot "/usr/local/apache2/htdocs"
     RewriteEngine On
     RewriteCond "%{HTTP_ACCEPT}" !text/html
     RewriteCond "%{THE_REQUEST}" \ (.+)\ HTTP/
-    RewriteRule .+ "@ENDPOINT_URL@?query=describe<@IRI_SCHEME@://%{SERVER_NAME}@_IRI_PORT@%1>"
+    RewriteRule .+ "@ENDPOINT_URL@?query=DESCRIBE<@IRI_SCHEME@://%{SERVER_NAME}@_IRI_PORT@%1>"
 
 </Directory>
 <Directory "/_">
