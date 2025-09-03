@@ -13,7 +13,7 @@
     labelLang: 'en',
     labelLangChoice: ['en', 'de', 'nl', 'fr'],
     infer: false,
-    fileOnly: 'no',
+    fileOnly: '@STARTPAGE@',
   }
 
   window.ldvConfig = ldvConfig
