@@ -62,7 +62,7 @@ for src in "$js_conf" "$httpd_conf"; do
     perl -p -e 's|@(\w+)@|$ENV{$1}//$&|ge' "$src".tpl > "$src"
 done
 
-perl -i -p -e 's|"(/_/(?:css\|js2)/[\w-]+\.\w+)\?\K[^"]+|`openssl dgst -binary "'"$d/"'$1" \| basenc --base64url --wrap=0`|ge' "$d"/_/*.html
+perl -i -p -e 's|"(/_/(?:css\|js2)/[\w.-]+\.\w+)\?\K[^"]+|`openssl dgst -binary "'"$d/"'$1" \| basenc --base64url --wrap=0`|ge' "$d"/_/*.html
 
 echo "
 ENDPOINT_URL = ${ENDPOINT_URL}
