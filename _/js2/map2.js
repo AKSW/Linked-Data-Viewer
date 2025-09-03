@@ -2,6 +2,10 @@
 
 (() => {
   const makeMap = (lit) => {
+    const mapLoading = document.getElementById('mapLoading')
+    if (mapLoading) {
+      mapLoading.remove()
+    }
     if (!lit) {
       return
     }

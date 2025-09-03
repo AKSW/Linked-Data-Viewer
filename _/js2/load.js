@@ -50,9 +50,18 @@
       .then((response) => response.json())
   }
 
+  const mapLoadingInfo = () => {
+    const titleDiv = document.getElementById('title')
+    const mapLoading = document.createElement('div')
+    mapLoading.id = 'mapLoading'
+    mapLoading.innerHTML = `[ Loading map... ]`
+    titleDiv.insertAdjacentElement('afterend', mapLoading)
+  }
+
   const findGeo = (iri) => {
     const infer = ldvConfig.infer
     const geoQuery = ldvQueries.geoQuery(iri, infer)
+    mapLoadingInfo()
     fetchJsonLd(geoQuery)
       .then((json) => findMap(iri, json))
   }
@@ -60,6 +69,7 @@
   const findFeatAllGeo = (iri) => {
     const infer = ldvConfig.infer
     const geoQuery = ldvQueries.featAllGeoQuery(iri, infer)
+    mapLoadingInfo()
     fetchJsonLd(geoQuery)
       .then((json) => findMap(`${iri}#featAllGeo`, json))
   }
