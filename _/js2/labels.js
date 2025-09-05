@@ -4,13 +4,25 @@
   const labels = { '': {} }
   const labelsPending = {}
 
-  const fetchLabelsJson = (query) => {
-    return ldvFetchTypeQuery('application/json', query)
+  const fetchJsonLd = (query) => {
+    return ldvFetchTypeQuery('application/ld+json', query)
       .then((response) => {
 	if (!response.ok)
 	  throw response
 	return response.json()
       })
+  }
+
+  const isLdvShowLabels = () => {
+    return window.localStorage.getItem('/ldv/loadlabels') === null
+  }
+
+  const getLdvLabelLang = () => {
+    const localLang = window.localStorage.getItem('/ldv/labellang')
+    if (localLang)
+      return localLang
+    else
+      return ldvConfig.labelLang
   }
 
   const ldvAddLabelsForUris = (uris, links) => {
@@ -75,9 +87,29 @@
     const values = newUris.map(e => `<${ e.startsWith('bnode://') ? '_:' + e.slice(8) : e }>`).join(' ')
     const query = ldvQueries.fetchLabelsQuery(values, lang, infer)
 
-    return fetchLabelsJson(query).then((json) => {
+    return fetchJsonLd(query).then((json) => {
+      const _o = (maybeOrObject) => maybeOrObject ? maybeOrObject : {}
+      const _pr = (o, g) => {
+	const comp = o['@id'].split(':')
+	const prefix = comp[0]
+	const prefixResolved = g['@context'][prefix]
+	const iri = prefixResolved ? `${prefixResolved}${o['@id'].slice(prefix.length + 1)}` : `${o['@id']}`
+	const name = g['@context'][prefix] ? o['@id'] : `<${o['@id']}>`
+	return [iri, name, prefix]
+      }
+
       newUris.forEach(e => delete labelsPending[lang][e])
-      json.forEach(e => labels[lang][e.uri] = e)
+
+      const prefixes = _o(json['@context'])
+      const g = json['@graph'] ? json['@graph'] : [json]
+      for (const e of g) {
+	if (e['@id']) {
+	  const [iri,,] = _pr(e, json)
+	  const c = e['urn:x-ldv:label']
+	  const d = c ? typeof c === 'object' ? { lang: c['@language'], label: c['@value'] } : { lang: '', label: c } : {}
+	  labels[lang][iri] = d
+	}
+      }
     })
   }
 
@@ -98,18 +130,6 @@
     const uris = Array.from(new Set(Array.from(links).map(e => e.href)))
     uris.sort()
     ldvAddLabelsForUris(uris, links)
-  }
-
-  const isLdvShowLabels = () => {
-    return window.localStorage.getItem('/ldv/loadlabels') === null
-  }
-
-  const getLdvLabelLang = () => {
-    const localLang = window.localStorage.getItem('/ldv/labellang')
-    if (localLang)
-      return localLang
-    else
-      return ldvConfig.labelLang
   }
 
   const renderLdvLabelConfig = () => {

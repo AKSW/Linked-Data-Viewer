@@ -45,11 +45,6 @@
       })
   }
 
-  const fetchJson = (query) => {
-    return ldvFetchTypeQuery('application/json', query)
-      .then((response) => response.json())
-  }
-
   const mapLoadingInfo = () => {
     const titleDiv = document.getElementById('title')
     const mapLoading = document.createElement('div')

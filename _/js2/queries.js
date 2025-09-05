@@ -150,29 +150,26 @@
     fetchLabelsQuery: (uris, lang, infer) => `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-JSON {
-    "uri": ?uri,
-    "label": ?label,
-    "lang": ?lang
-  } WHERE {
-    VALUES ?uri_ { ${uris} }
-    bind(if(isblank(?uri_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?uri_))),?uri_) as ?uri)
-    LATERAL { OPTIONAL {
-      ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
-      SELECT ?uri ?uri_ ?label ?lang {
-        {
-          ?uri_ rdfs:label|skos:prefLabel ?label .
-          FILTER(lang(?label) = "${lang}") .
-          BIND(lang(?label) AS ?lang) .
-        } UNION {
-          ?uri_ rdfs:label|skos:prefLabel ?label .
-          FILTER(lang(?label) = "") .
-          BIND(lang(?label) AS ?lang) .
-        }
-      } LIMIT 1
-      ${ infer ? '}' : '' }
-    } }
-  }
+CONSTRUCT {
+  ?uri <urn:x-ldv:label> ?label .
+  ?uri <urn:x-ldv:labelFetched> true .
+} WHERE {
+  VALUES ?uri_ { ${uris} }
+  ${bnodeFn('?uri_', '?uri')}
+  LATERAL { OPTIONAL {
+    ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
+    SELECT ?uri ?uri_ ?label {
+      {
+        ?uri_ rdfs:label|skos:prefLabel ?label .
+        FILTER(lang(?label) = "${lang}") .
+      } UNION {
+        ?uri_ rdfs:label|skos:prefLabel ?label .
+        FILTER(lang(?label) = "") .
+      }
+    } LIMIT 1
+    ${ infer ? '}' : '' }
+  } }
+}
 `,
     geoQuery: (iri, infer) => `CONSTRUCT {
   <${iri}> <http://www.opengis.net/ont/geosparql#asWKT> ?wktLiteral
