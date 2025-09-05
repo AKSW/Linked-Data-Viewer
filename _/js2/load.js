@@ -115,6 +115,116 @@
       putmsg(message)
   }
 
+  const _prefixMap = (context) => {
+    let prefixes = ''
+    for (const prefix in context) {
+      if (prefix.startsWith('@')) {
+	continue
+      }
+      prefixes += `PREFIX ${prefix}: <${context[prefix]}>
+`
+    }
+    return prefixes
+  }
+
+  const runDescribeQueryEmulation = async (iri, infer, reverseEnabled, resType) => {
+    const _a = (maybeArray) => Array.isArray(maybeArray) ? maybeArray : [maybeArray]
+    const _o = (maybeOrObject) => maybeOrObject ? maybeOrObject : {}
+    const _pr = (o, g) => {
+      const comp = o['@id'].split(':')
+      const prefix = comp[0]
+      const prefixResolved = g['@context'][prefix]
+      const iri = prefixResolved ? `${prefixResolved}${o['@id'].slice(prefix.length + 1)}` : `${o['@id']}`
+      const name = g['@context'][prefix] ? o['@id'] : `<${o['@id']}>`
+      return [iri, name, prefix]
+    }
+    const _render = (g, s, p1, doc) => {
+      const isReverse = p1.startsWith(ldvDef.reversePropPrefix)
+      const p0 = isReverse ? p1.slice(ldvDef.reversePropPrefix.length + 1) : p1
+      const revSel = isReverse ? '.rdf-inverse' : ''
+      const elem0 = document.createElement('div')
+      elem0.innerHTML = `<div class="dummy"></div>`
+      const r = resType === 'subResource' ? '' : '#graph'
+      const cell1 = doc.querySelector(`${r} table[id="${s}"] tr${revSel} .table-predicate a[href="${p0}"]`)
+      const cell = cell1.closest('tr').querySelector('.table-object')
+      renderMoreResults(g, s, p1, elem0, cell)
+    }
+
+    const subDoc = document.createElement('div')
+    const doc = resType === 'subResource' ? subDoc : document
+    const qEmuS = ldvQueries.describeQueryEmuS(iri, infer, reverseEnabled)
+    const graph = {}
+    const jsonEmuS = await fetchJsonLd(qEmuS)
+    if (jsonEmuS['@id']) {
+      const id = jsonEmuS['@id']
+      const bIri = id.startsWith('bnode://') ? '_:' + id.slice(8) : id
+      graph['@id'] = bIri
+      graph['@context'] = _o(jsonEmuS['@context'])
+      if (jsonEmuS['@type']) {
+	graph['@type'] = jsonEmuS['@type']
+      }
+
+      const qEmuListP = ldvQueries.describeQueryEmuListP(bIri, infer, reverseEnabled)
+      const jsonEmuListP = await fetchJsonLd(qEmuListP)
+      graph['@context'] = {...graph['@context'], ..._o(jsonEmuListP['@context'])}
+
+      const qEmuListPReverse = reverseEnabled === 'yes' ? ldvQueries.describeQueryEmuListPReverse(bIri, infer, reverseEnabled) : undefined
+      const jsonEmuListPReverse = reverseEnabled === 'yes' ? await fetchJsonLd(qEmuListPReverse) : {}
+      graph['@context'] = {...graph['@context'], ..._o(jsonEmuListPReverse['@context'])}
+
+      if (jsonEmuListP['urn:x-var:p-list']) {
+	for (const p of _a(jsonEmuListP['urn:x-var:p-list'])) {
+	  const [pIri,,] = _pr(p, graph)
+	  graph[p['@id']] = []
+	}
+      }
+
+      if (jsonEmuListPReverse['urn:x-var:p-reverse-list']) {
+	for (const p of _a(jsonEmuListPReverse['urn:x-var:p-reverse-list'])) {
+	  const [pIri,,] = _pr(p, graph)
+	  const pReverseIri = `${ldvDef.reversePropPrefix}:${pIri}`
+	  graph[pReverseIri] = []
+	}
+      }
+
+      if (resType === 'subResource') {
+	const res = await renderSubNode(bIri, graph)
+	subDoc.innerHTML = res
+      } else {
+	renderLd(bIri, ldvConfig.datasetBase, ldvConfig.localMode, graph)
+      }
+
+      if (jsonEmuListP['urn:x-var:p-list']) {
+	const prefixes = _prefixMap(graph['@context'])
+	for (const p of _a(jsonEmuListP['urn:x-var:p-list'])) {
+	  const [pIri, pName, prefix] = _pr(p, graph)
+	  const qEmuListPObjs = ldvQueries.describeQueryEmuListPObjs(bIri, pName, infer, reverseEnabled, prefixes)
+	  const pObjects = await fetchJsonLd(qEmuListPObjs)
+	  graph['@context'] = {...graph['@context'], ..._o(pObjects['@context'])}
+	  graph[p['@id']] = pObjects[p['@id']]
+	  _render(graph, bIri, pIri, doc)
+	}
+      }
+
+      if (jsonEmuListPReverse['urn:x-var:p-reverse-list']) {
+	for (const p of _a(jsonEmuListPReverse['urn:x-var:p-reverse-list'])) {
+	  const [pIri,,] = _pr(p, graph)
+	  const pReverseIri = `${ldvDef.reversePropPrefix}:${pIri}`
+	  const qEmuListPReverseObjs = ldvQueries.describeQueryEmuListPReverseObjs(bIri, pIri, infer, reverseEnabled)
+	  const pReverseObjects = await fetchJsonLd(qEmuListPReverseObjs)
+	  graph['@context'] = {...graph['@context'], ..._o(pReverseObjects['@context'])}
+	  graph[pReverseIri] = pReverseObjects[pReverseIri]
+	  _render(graph, bIri, pReverseIri, doc)
+	}
+      }
+    }
+    if (resType === 'subResource') {
+      return subDoc.innerHTML
+    } else {
+      return graph
+    }
+  }
+
   const loadResource = (iri) => {
     const infer = ldvConfig.infer
     const askQuery = ldvQueries.askQuery(iri, ldvConfig.reverseEnabled)
@@ -125,17 +235,30 @@
 	if (!text)
 	  return
 	if (text.trim() === 'yes') {
-	  fetchJsonLd(describeQuery)
-	    .then((json) => {
-	      document.getElementById('data').innerHTML = JSON.stringify(json)
-	      renderLd(bIri, ldvConfig.datasetBase, ldvConfig.localMode, json)
-	      findMap(bIri, json)
-	      renderLdvLabelConfig()
-	    })
-	    .catch((err) => {
-	      errorPage(iri, err.statusText || err.name, err && err.text ? err.text() : err.message)
-	      renderLdvLabelConfig()
-	    })
+	  if (ldvConfig.describeQueryEmulation === 'yes') {
+	    runDescribeQueryEmulation(iri, infer, ldvConfig.reverseEnabled, 'mainResource')
+	      .then((json) => {
+		document.getElementById('data').innerHTML = JSON.stringify(json)
+		findMap(bIri, json)
+		renderLdvLabelConfig()
+	      })
+	      .catch((err) => {
+		errorPage(iri, err.statusText || err.name, err && err.text ? err.text() : err.message)
+		renderLdvLabelConfig()
+	      })
+	  } else {
+	    fetchJsonLd(describeQuery)
+	      .then((json) => {
+		document.getElementById('data').innerHTML = JSON.stringify(json)
+		renderLd(bIri, ldvConfig.datasetBase, ldvConfig.localMode, json)
+		findMap(bIri, json)
+		renderLdvLabelConfig()
+	      })
+	      .catch((err) => {
+		errorPage(iri, err.statusText || err.name, err && err.text ? err.text() : err.message)
+		renderLdvLabelConfig()
+	      })
+	  }
 	} else if (ldvConfig.fileOnly === 'yes') {
 	  errorPage(iri, 'Resource not found', '')
 	  renderLdvLabelConfig()
@@ -158,11 +281,16 @@
       fetchPlain(askQuery)
 	.then((text) => {
 	  if (text.trim() === 'yes') {
-	    fetchJsonLd(describeQuery)
-	      .then((json) => {
-		renderSubNode(bIri, json)
-		  .then(resolve)
-	      })
+	    if (ldvConfig.describeQueryEmulation === 'yes') {
+	      runDescribeQueryEmulation(iri, infer, ldvConfig.reverseEnabled, 'subResource')
+		.then(resolve)
+	    } else {
+	      fetchJsonLd(describeQuery)
+		.then((json) => {
+		  renderSubNode(bIri, json)
+		    .then(resolve)
+		})
+	    }
 	  } else {
 	    reject('not_found')
 	  }

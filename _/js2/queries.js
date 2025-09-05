@@ -200,6 +200,134 @@ CONSTRUCT {
   VALUES (?id ?s ?p ?o) { ( <${lookupId}> ${pattern} ) }
   GRAPH ?graph { ?s ?p ?o }
 }`,
+
+    describeQueryEmuS: (iri, infer, reverseEnabled) => {
+      const altIri = iri.replaceAll('(', '%28').replaceAll(')', '%29')
+      const r = reverseEnabled === 'yes'
+
+      return `CONSTRUCT {
+  ?s <urn:x-var:p> <urn:x-var:o> .
+  ?s a ?type .
+} WHERE {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
+  {
+    {
+      SELECT ?s_ {
+${r ? `{` : ''}
+        VALUES ?s_ { <${altIri}> <${iri}> }
+        ?s_ ?p [] .
+${r ? `} UNION {
+        VALUES ?s_ { <${altIri}> <${iri}> }
+        ?ox ?p ?s_
+}` : ''}
+      } LIMIT 1
+    } UNION {
+      SELECT ?s_ ?type {
+        VALUES ?s_ { <${altIri}> <${iri}> }
+        ?s_ a ?type .
+      }
+    }
+  }
+  ${bnodeFn('?s_', '?s')}
+  ${ infer ? '}' : '' }
+}
+`
+    },
+    describeQueryEmuListP: (iri, infer, reverseEnabled) => {
+      return `CONSTRUCT {
+  ?s <urn:x-var:p-list> ?p .
+} WHERE {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
+  {
+    SELECT DISTINCT ?s_ ?p {
+      VALUES ?s_ { <${iri}> }
+      ?s_ ?p [] .
+      filter(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+    } LIMIT 1000
+  }
+  ${bnodeFn('?s_', '?s')}
+  ${ infer ? '}' : '' }
+}
+`
+    },
+    describeQueryEmuListPReverse: (iri, infer, reverseEnabled) => {
+      return `CONSTRUCT {
+  ?s <urn:x-var:p-reverse-list> ?rp .
+} WHERE {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
+  {
+    SELECT DISTINCT ?s_ ?rp {
+      VALUES ?s_ { <${iri}> }
+      ?o ?rp ?s_ .
+    } LIMIT 1000
+  }
+  ${bnodeFn('?s_', '?s')}
+  ${ infer ? '}' : '' }
+}
+`
+    },
+    describeQueryEmuListPObjs: (iri, pName, infer, reverseEnabled, prefixes) => {
+      return `${prefixes}
+CONSTRUCT {
+  ?s ?p ?o .
+} WHERE {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
+  {
+    {
+      SELECT ?s_ ?p ?o {
+        VALUES (?s_ ?p) { (<${iri}> ${pName}) }
+        ?s_ ?p ?o_ .
+        ${bnodeFn('?o_', '?o')}
+      } LIMIT 10
+    } UNION {
+      {
+        SELECT ?s_ ?p (count(?ox) AS ?oCnt) {
+          {
+            SELECT ?s_ ?p ?ox {
+              VALUES (?s_ ?p) { (<${iri}> ${pName}) }
+              ?s_ ?p ?ox
+            } LIMIT 11
+          }
+        } GROUP BY ?s_ ?p
+      }
+      bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+    }
+  }
+  ${bnodeFn('?s_', '?s')}
+  ${ infer ? '}' : '' }
+}`
+    },
+    describeQueryEmuListPReverseObjs: (iri, pIri, infer, reverseEnabled) => {
+      return `CONSTRUCT {
+  ?s ?p ?o .
+} WHERE {
+  ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
+  {
+    {
+      SELECT ?s_ ?rp ?o {
+        VALUES (?s_ ?rp) { (<${iri}> <${pIri}>) }
+        ?o_ ?rp ?s_ .
+        ${bnodeFn('?o_', '?o')}
+      } LIMIT 10
+    } UNION {
+      {
+        SELECT ?s_ ?rp (count(?ox) AS ?oCnt) {
+          {
+            SELECT ?s_ ?rp ?ox {
+              VALUES (?s_ ?rp) { (<${iri}> <${pIri}>) }
+              ?ox ?rp ?s_
+            } LIMIT 11
+          }
+        } GROUP BY ?s_ ?rp
+      }
+      bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+    }
+  }
+  bind(uri(concat('${ldvDef.reversePropPrefix}:',str(?rp))) AS ?p)
+  ${bnodeFn('?s_', '?s')}
+  ${ infer ? '}' : '' }
+}`
+    },
   }
 
   window.ldvQueries = ldvQueries

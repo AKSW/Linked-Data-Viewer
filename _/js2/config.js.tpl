@@ -14,6 +14,7 @@
     labelLangChoice: ['en', 'de', 'nl', 'fr'],
     infer: false,
     fileOnly: '@STARTPAGE@',
+    describeQueryEmulation: 'no',
   }
 
   window.ldvConfig = ldvConfig
