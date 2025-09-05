@@ -28,23 +28,24 @@ ${r ? `} UNION {
   {
     SELECT ?x {
       VALUES ?x { <${altIri}> <${iri}> }
-    }
+      ?x ?p_ [] .
+    } LIMIT 1
   } LATERAL {` +
     [`{
-      bind(?x AS ?s_) .
+      BIND(?x AS ?s_) .
       LATERAL {
         {
-          OPTIONAL {
+          { SELECT DISTINCT ?s_ ?p ?o {
             VALUES ?p {<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>}
             ?s_ ?p ?o_ .
             ${bnodeFn('?o_', '?o')}
-          }
+          } }
         } UNION {
           {
-            SELECT ?s_ ?p {
+            SELECT DISTINCT ?s_ ?p {
               ?s_ ?p []
-              filter(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
-            } GROUP BY ?s_ ?p LIMIT 1000
+              FILTER(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)
+            } LIMIT 1000
           } LATERAL {
             {
               SELECT ?s_ ?p ?o {
@@ -52,23 +53,22 @@ ${r ? `} UNION {
                 ${bnodeFn('?o_', '?o')}
               } LIMIT 10
             } UNION {
-              LATERAL {
-                SELECT ?s_ ?p (count(?ox) AS ?oCnt) {
-                  {
-                    SELECT ?s_ ?p ?ox {
-                      ?s_ ?p ?ox
-                    } LIMIT 11
-                  }
-                }  GROUP BY ?s_ ?p
-              } bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+              { SELECT ?s_ ?p (count(?ox) AS ?oCnt) {
+                  ?s_ ?p ?ox
+                } GROUP BY ?s_ ?p LIMIT 11
+              }
+              FILTER(?oCnt > 10)
+              BIND(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?o)
             }
           }
         } UNION {
-          OPTIONAL {
-            GRAPH ?o {
-              ?s_ a ?ox
+          { SELECT DISTINCT ?s_ ?p ?o {
+              VALUES ?p { <${ldvDef.sourceGraphPropId}> }
+              GRAPH ?o {
+                ?s_ a ?ox
+              }
             }
-          } bind(if(bound(?o),<${ldvDef.sourceGraphPropId}>,coalesce()) AS ?p)
+          }
         }
       }
       ${bnodeFn('?s_', '?s')}
@@ -76,9 +76,12 @@ ${r ? `} UNION {
       bind(?x AS ?s_) .
       LATERAL {
         {
-          SELECT ?s_ ?rp {
-            [] ?rp ?s_
-          } GROUP BY ?s_ ?rp LIMIT 100
+          SELECT DISTINCT ?s_ ?rp {
+            { SELECT ?s_ ?rp {
+                [] ?rp ?s_
+              } LIMIT 10000
+            }
+          } LIMIT 100
         } LATERAL {
           {
             SELECT ?s_ ?rp ?o {
@@ -86,15 +89,14 @@ ${r ? `} UNION {
               ${bnodeFn('?o_', '?o')}
             } LIMIT 10
           } UNION {
-            LATERAL {
-              SELECT ?s_ ?rp (count(?ox) AS ?oCnt) {
-                {
-                  SELECT ?s_ ?rp ?ox {
-                    ?ox ?rp ?s_
-                  } LIMIT 11
-                }
+            { SELECT ?s_ ?rp (count(?ox) AS ?oCnt) {
+                SELECT ?s ?rp ?ox {
+                  ?ox ?rp ?s_
+                } LIMIT 11
               } GROUP BY ?s_ ?rp
-            } bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+            }
+            FILTER(?oCnt > 10)
+            BIND(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?o)
           }
         }
       }
@@ -124,7 +126,9 @@ ${r ? `} UNION {
           } LIMIT ${limit + 1} OFFSET ${offset}
         }
       }
-    } bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+    }
+    FILTER(?oCnt > 10)
+    bind(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?o)
   }
   ${ infer ? '}' : '' }
 }
@@ -145,7 +149,9 @@ ${r ? `} UNION {
           } LIMIT ${limit + 1} OFFSET ${offset}
         }
       }
-    } bind(if(?sCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?s)
+    }
+    FILTER(?sCnt > 10)
+    bind(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?s)
   }
   ${ infer ? '}' : '' }
 }
@@ -197,8 +203,8 @@ CONSTRUCT {
 CONSTRUCT {
   ?id <${ldvDef.sourceGraphPropId}> ?graph .
 } WHERE {
-  VALUES (?id ?s ?p ?o) { ( <${lookupId}> ${pattern} ) }
-  GRAPH ?graph { ?s ?p ?o }
+  VALUES ?id { <${lookupId}> }
+  GRAPH ?graph {  ${pattern} }
 }`,
 
     describeQueryEmuS: (iri, infer, reverseEnabled) => {
@@ -290,7 +296,8 @@ CONSTRUCT {
           }
         } GROUP BY ?s_ ?p
       }
-      bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+      FILTER(?oCnt > 10)
+      bind(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?o)
     }
   }
   ${bnodeFn('?s_', '?s')}
@@ -320,7 +327,8 @@ CONSTRUCT {
           }
         } GROUP BY ?s_ ?rp
       }
-      bind(if(?oCnt>10,strdt('...',<${ldvDef.moreResultsObjId}>),coalesce()) AS ?o)
+      FILTER(?oCnt > 10)
+      bind(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?o)
     }
   }
   bind(uri(concat('${ldvDef.reversePropPrefix}:',str(?rp))) AS ?p)
