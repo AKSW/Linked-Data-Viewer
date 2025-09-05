@@ -1,33 +1,33 @@
 /* global ldvDef, ldvStartpageMoreClassesInstQuery, ldvStartpageMoreClassesOntQuery */
 (() => {
+  const bnodeFn = (from, to) => `bind(if(isblank(${from}),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(${from}))),${from}) as ${to})`
+  const bnodeFnInv = (iri, out) => `<${ iri.startsWith('_:') ? 'bnode://' + iri.slice(2) : iri }>`
+
   const ldvQueries = {
-    askQuery: (iri, reverseEnabled) => `ASK {` +
- [`{
-    bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?s) .
+    askQuery: (iri, reverseEnabled) => {
+      const altIri = iri.replaceAll('(', '%28').replaceAll(')', '%29')
+      const r = reverseEnabled === 'yes'
+
+      return `ASK {
+${r ? `{` : ''}
+    VALUES ?s { <${altIri}> <${iri}> }
     ?s ?p ?o
- }`, `{
-    bind(<${iri}> as ?s) .
+${r ? `} UNION {
+    VALUES ?o { <${altIri}> <${iri}> }
     ?s ?p ?o
- }`, ... reverseEnabled === 'yes' ? [`{
-    bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?o) .
-    ?s ?p ?o
- }`, `{
-    bind(<${iri}> as ?o) .
-    ?s ?p ?o
- }`] : [] ].join(` UNION `) + `
+}` : ''}
 }
-`,
-    describeQuery: (iri, infer, reverseEnabled) => `CONSTRUCT {
+`
+    },
+    describeQuery: (iri, infer, reverseEnabled) => {
+      const altIri = iri.replaceAll('(', '%28').replaceAll(')', '%29')
+      return `CONSTRUCT {
   ?s ?p ?o .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   {
     SELECT ?x {
-      {
-        bind(iri(replace(replace("${iri}", '\\\\(', '%28'), '\\\\)', '%29')) AS ?x)
-      } UNION {
-        bind(<${iri}> AS ?x)
-      }
+      VALUES ?x { <${altIri}> <${iri}> }
     }
   } LATERAL {` +
     [`{
@@ -35,9 +35,9 @@
       LATERAL {
         {
           OPTIONAL {
-            bind(<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> as ?p)
+            VALUES ?p {<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>}
             ?s_ ?p ?o_ .
-            bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o)
+            ${bnodeFn('?o_', '?o')}
           }
         } UNION {
           {
@@ -49,7 +49,7 @@
             {
               SELECT ?s_ ?p ?o {
                 ?s_ ?p ?o_ .
-                bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o)
+                ${bnodeFn('?o_', '?o')}
               } LIMIT 10
             } UNION {
               LATERAL {
@@ -71,7 +71,7 @@
           } bind(if(bound(?o),<${ldvDef.sourceGraphPropId}>,coalesce()) AS ?p)
         }
       }
-      bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
+      ${bnodeFn('?s_', '?s')}
     }`, ... reverseEnabled === 'yes' ? [`{
       bind(?x AS ?s_) .
       LATERAL {
@@ -83,7 +83,7 @@
           {
             SELECT ?s_ ?rp ?o {
               ?o_ ?rp ?s_ .
-              bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o)
+              ${bnodeFn('?o_', '?o')}
             } LIMIT 10
           } UNION {
             LATERAL {
@@ -99,20 +99,22 @@
         }
       }
       bind(uri(concat('${ldvDef.reversePropPrefix}:',str(?rp))) AS ?p)
-      bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
+      ${bnodeFn('?s_', '?s')}
     }`] : [] ].join(` UNION `) + `
   }
   ${ infer ? '}' : '' }
 }
-`,
+`
+    },
     loadMoreQuery: (s, p, limit, offset, infer) => p === ldvDef.classesInstPropId ? ldvStartpageMoreClassesInstQuery(limit, offset)
       : p === ldvDef.classesOntPropId ? ldvStartpageMoreClassesOntQuery(limit, offset)
       : `CONSTRUCT {
-  <${ s.startsWith('_:') ? 'bnode://' + s.slice(2) : s }> <${p}> ?o .
+  ${bnodeFnInv(s)} <${p}> ?o .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?o {
-      <${s}> <${p}> ?o_ . bind(if(isblank(?o_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?o_))),?o_) as ?o) .
+      <${s}> <${p}> ?o_ .
+      ${bnodeFn('?o_', '?o')}
     } LIMIT ${limit} OFFSET ${offset}
   } UNION {
     { SELECT (count(?ox) AS ?oCnt) {
@@ -128,11 +130,12 @@
 }
 `,
     loadMoreReverseQuery: (o, p, limit, offset, infer) => `CONSTRUCT {
-  <${ o.startsWith('_:') ? 'bnode://' + o.slice(2) : o }> <${ldvDef.reversePropPrefix}:${p}> ?s .
+  ${bnodeFnInv(o)} <${ldvDef.reversePropPrefix}:${p}> ?s .
 } {
   ${ infer ? 'SERVICE <sameAs+rdfs:> {' : '' }
   { SELECT ?s {
-      ?s_ <${p}> <${o}> . bind(if(isblank(?s_),iri(concat("bnode://",<http://jena.apache.org/ARQ/function#bnode>(?s_))),?s_) as ?s)
+      ?s_ <${p}> <${o}> .
+      ${bnodeFn('?s_', '?s')}
     } LIMIT ${limit} OFFSET ${offset}
   } UNION {
     { SELECT (count(?sx) AS ?sCnt) {
@@ -194,8 +197,7 @@ CONSTRUCT {
 CONSTRUCT {
   ?id <${ldvDef.sourceGraphPropId}> ?graph .
 } WHERE {
-  BIND(<${lookupId}> as ?id) .
-  VALUES (?s ?p ?o) { ( ${pattern} ) }
+  VALUES (?id ?s ?p ?o) { ( <${lookupId}> ${pattern} ) }
   GRAPH ?graph { ?s ?p ?o }
 }`,
   }
