@@ -54,8 +54,10 @@ ${r ? `} UNION {
               } LIMIT 10
             } UNION {
               { SELECT ?s_ ?p (count(?ox) AS ?oCnt) {
-                  ?s_ ?p ?ox
-                } GROUP BY ?s_ ?p LIMIT 11
+                  SELECT ?s_ ?p ?ox {
+                    ?s_ ?p ?ox
+                  } LIMIT 11
+                } GROUP BY ?s_ ?p
               }
               FILTER(?oCnt > 10)
               BIND(strdt('...',<${ldvDef.moreResultsObjId}>) AS ?o)
@@ -90,7 +92,7 @@ ${r ? `} UNION {
             } LIMIT 10
           } UNION {
             { SELECT ?s_ ?rp (count(?ox) AS ?oCnt) {
-                SELECT ?s ?rp ?ox {
+                SELECT ?s_ ?rp ?ox {
                   ?ox ?rp ?s_
                 } LIMIT 11
               } GROUP BY ?s_ ?rp
