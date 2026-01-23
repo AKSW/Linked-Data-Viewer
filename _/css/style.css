@@ -173,6 +173,10 @@ header.float {
     font-size: smaller;
 }
 
+.container > .row {
+    min-height: 4em;
+}
+
 #graphLookupPopup {
     font-size: 80%;
     border: 1px solid;
@@ -287,6 +291,18 @@ a[href="urn:x-ldv:more-results"] {
 }
 
 @media print {
-    .ldv-expand-button { display: none; }
-    .ldv-graph-lookup-button { display: none; }
+    .ldv-expand-button,
+    .ldv-graph-lookup-button,
+    footer button,
+    span :has(span a[href="urn:x-ldv:more-results"]) { display: none; }
+    .container > .row { margin-top: 10em; }
+    footer { position: absolute; top: 1.5em; }
+    footer a[href]:first-child::after { content: " Linked Data Viewer (http://aksw.org/)" }
+    body, a, a:visited { color: #000; }
+    a, a:visited { text-decoration: none !important; }
+    input[type="checkbox"], button { background: transparent !important; color: #000 !important; }
+    input[type="checkbox"]:checked:before, input[type="checkbox"]:after { border-color: #000; }
+    input[type="checkbox"]:checked:after { background-color: transparent; border-color: #000; }
+    select { background-color: transparent; border: solid 2px #000; }
+    .ldv-sub-node { border-width: 2px; }
 }

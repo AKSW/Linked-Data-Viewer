@@ -414,8 +414,8 @@
 
       ldvAddLabels()
       ldvBlankNodes(iri)
-    }).catch(function (error) {
-      console.error(error)
+    }).catch((err) => {
+      console.error(err)
     })
   }
 

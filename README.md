@@ -9,7 +9,9 @@ Simple RDF/Linked Data Viewer for remote Jena Fuseki/SPARQL endpoints
 ```sh
 docker run --rm \
   -p 8001:80 \
-  -e ENDPOINT_URL=http://localhost:3030/geods \
+  -e STARTPAGE=yes \
+  -e USE_CREDS=no \
+  -e ENDPOINT_URL=http://localhost:8642/sparql \
   --init \
   aksw/ldv
 ```
@@ -44,4 +46,5 @@ services:
      - EXPLORE_URL=http://localhost:8002/
 ```
 
-Now visit http://localhost:8001/*?http://example.org/country/DEU (an existing IRI in your knowledge graph)
+Now visit http://localhost:8001/?*
+

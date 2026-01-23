@@ -1,4 +1,4 @@
-/* global jsonld, makeMap, renderLd, renderSubNode, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveSubNodes, ldvUnresolveSubNodes, ldvQueries, ldvConfig, ldvDef, loadStartpage */
+/* global jsonld, makeMap, renderLd, renderSubNode, renderMoreResults, renderLdvLabelConfig, isLdvShowLabels, getLdvLabelLang, ldvResolveSubNodes, ldvUnresolveSubNodes, ldvQueries, ldvConfig, ldvDef, loadStartpage, URL */
 
 (() => {
   const xGeo = "http://www.opengis.net/ont/geosparql#"
@@ -117,12 +117,14 @@
 
   const _prefixMap = (context) => {
     let prefixes = ''
-    for (const prefix in context) {
-      if (prefix.startsWith('@')) {
-	continue
-      }
-      prefixes += `PREFIX ${prefix}: <${context[prefix]}>
+    if (context) {
+      for (const prefix in context) {
+	if (prefix.startsWith('@')) {
+	  continue
+	}
+	prefixes += `PREFIX ${prefix}: <${context[prefix]}>
 `
+      }
     }
     return prefixes
   }
@@ -133,9 +135,10 @@
     const _pr = (o, g) => {
       const comp = o['@id'].split(':')
       const prefix = comp[0]
-      const prefixResolved = g['@context'][prefix]
+      const context = _o(g['@context'])
+      const prefixResolved = context[prefix]
       const iri = prefixResolved ? `${prefixResolved}${o['@id'].slice(prefix.length + 1)}` : `${o['@id']}`
-      const name = g['@context'][prefix] ? o['@id'] : `<${o['@id']}>`
+      const name = context[prefix] ? o['@id'] : `<${o['@id']}>`
       return [iri, name, prefix]
     }
     const _render = (g, s, p1, doc) => {
@@ -404,6 +407,8 @@
     if (window.location.pathname.substring(0, 2) === '/_') // internal files
       return
 
+    const endpointLink = document.getElementById('endpointUrl')
+    endpointLink.setAttribute('href', ldvConfig.endpointUrl)
     ldvConfig.infer = !! window.localStorage.getItem('/ldv/infer')
 
     var pathname

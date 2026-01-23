@@ -67,7 +67,22 @@
       })
     })
       .catch((err) => {
-	err.text().then(msg => console.log(`Error fetching labels:`, {status: err.status, statusText: err.statusText, body: msg})).catch(err => console.log(`Error fetching labels:`, {status: err.status, statusText: err.statusText, err: err}))
+	const _log = (args) => {
+	  let logObj = {}
+	  if (args.err.status)     logObj.status     = args.err.status
+	  if (args.err.statusText) logObj.statusText = args.err.statusText
+	  if (args.msg)            logObj.body       = args.msg
+	  else                     logObj.err        = args.err
+	  if (err !== args.err)    logObj.err0       = err
+	  console.log(`Error fetching labels:`, logObj)
+	}
+	if (err.text) {
+	  err.text()
+	    .then(msg => _log({msg, err}))
+	    .catch(err => _log({err}))
+	} else {
+	  _log({err})
+	}
       })
   }
 
@@ -92,15 +107,15 @@
       const _pr = (o, g) => {
 	const comp = o['@id'].split(':')
 	const prefix = comp[0]
-	const prefixResolved = g['@context'][prefix]
+	const context = _o(g['@context'])
+	const prefixResolved = context[prefix]
 	const iri = prefixResolved ? `${prefixResolved}${o['@id'].slice(prefix.length + 1)}` : `${o['@id']}`
-	const name = g['@context'][prefix] ? o['@id'] : `<${o['@id']}>`
+	const name = context[prefix] ? o['@id'] : `<${o['@id']}>`
 	return [iri, name, prefix]
       }
 
       newUris.forEach(e => delete labelsPending[lang][e])
 
-      const prefixes = _o(json['@context'])
       const g = json['@graph'] ? json['@graph'] : [json]
       for (const e of g) {
 	if (e['@id']) {
